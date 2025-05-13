@@ -8,5 +8,6 @@ return {
         height = math.floor(vim.o.lines * 0.85),
       },
     },
+    lazygit = { enabled = true },
   },
 }
