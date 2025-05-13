@@ -1,0 +1,298 @@
+#!/usr/bin/env zsh
+# zmodload zsh/zprof
+
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_STATE_HOME="$HOME/.local/state"
+export XDG_CACHE_HOME="$HOME/.cache"
+
+fpath+=("$ZDOTDIR/completions")
+path=(/Applications/WezTerm.app/Contents/MacOS /Applications/kitty.app/Contents/MacOS $PNPM_HOME "$HOME/.cargo/bin" "$XDG_DATA_HOME/nvim/mason/bin" $path)
+
+
+# zim set up
+# zstyle ':zim:zmodule' use 'degit'
+export ZIM_CONFIG_FILE="$ZDOTDIR/.zimrc"
+export ZIM_HOME="$ZDOTDIR/.zim"
+
+# Download zimfw plugin manager if missing.
+if [[ ! -e ${ZIM_HOME}/zimfw.zsh ]]; then
+  curl -fsSL --create-dirs -o ${ZIM_HOME}/zimfw.zsh \
+      https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh
+fi
+
+# Install missing modules and update ${ZIM_HOME}/init.zsh if missing or outdated.
+if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZIM_CONFIG_FILE:-${ZDOTDIR:-${HOME}}/.zimrc} ]]; then
+  source ${ZIM_HOME}/zimfw.zsh init -q
+fi
+
+zstyle ':zim' disable-version-check yes
+source ${ZIM_HOME}/init.zsh
+# end of zim set up
+
+
+source ${ZIM_HOME}/modules/zsh-defer/zsh-defer.plugin.zsh
+
+(($+commands[kopia])) && zsh-defer _evalcache kopia --completion-script-zsh
+(($+commands[atuin])) && zsh-defer _evalcache atuin init zsh
+(($+commands[direnv])) && zsh-defer _evalcache direnv hook zsh
+(($+commands[zoxide])) && zsh-defer _evalcache zoxide init zsh
+(($+commands[mise])) && zsh-defer _evalcache mise activate zsh
+(($+commands[starship])) && _evalcache starship init zsh
+(($+commands[tv])) && zsh-defer _evalcache tv init zsh
+
+# Activate Powerlevel10k Instant Prompt.
+# if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+#   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+# fi
+# [[ -f $ZDOTDIR/.p10k.zsh ]] && source $ZDOTDIR/.p10k.zsh
+
+
+HISTFILE="$ZDOTDIR/.zsh_history"
+HISTORY_IGNORE='(cd|ll|lla|lt|d|exit|hist|history|ls|pwd|exit|* --help|h|zsht|.|..|...|....|.....)'
+HISTSIZE=1000000000            # infinite command history
+SAVEHIST=1000000000            # infinite command history
+HISTFILESIZE=1000000000        # infinite command history
+
+
+#===========================================================================
+#                            exports
+#===========================================================================
+export DO_NOT_TRACK=1
+
+# Make Python use UTF-8 encoding for output to stdin, stdout, and stderr.
+export PYTHONIOENCODING=UTF-8
+# Disable unnecessary, temporary files
+export PYTHONDONTWRITEBYTECODE=1
+# Prefer US English and use UTF-8.
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
+export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}/ripgrep/ripgreprc"
+export SEABORN_DATA="${XDG_CONFIG_HOME}/seaborn-data"
+
+
+#============================= END OF exports ==============================
+
+#===========================================================================
+#                            alias
+#===========================================================================
+alias path="printf '%s\n' $path"
+alias fpath="printf '%s\n' $fpath"
+(($+commands[kubectl])) && alias k="kubectl"
+
+
+if (( $+commands[eza] )); then
+    alias ls='eza --group-directories-first --icons --git -bh'
+    alias ll='ls -l --git'        # Long format, git status
+    alias l='ll -a'               # Long format, all files
+    alias lr='ll -T'              # Long format, recursive as a tree
+    alias lx='ll -sextension'     # Long format, sort by extension
+    alias lk='ll -ssize'          # Long format, largest file size last
+    alias lt='ll -smodified'      # Long format, newest modification time last
+    alias lc='ll -schanged'       # Long format, newest status change (ctime) last
+else
+fi
+
+
+alias df='df -H'
+alias du='du -d 1 -h | sort -h'
+
+if (( $+commands[rsync] )); then
+    # alias cp="rsync -ahvP --backup-dir=/tmp/bkp"
+    # alias update="rsync -uahvP --backup-dir=/tmp/bkp"
+    # alias mv="rsync -uahvP --backup-dir=/tmp/bkp --remove-source-files"
+else
+    alias cp="cp -aivR"
+    alias update="cp -uaiv"
+    alias mv="mv -iv"
+fi
+
+if [[ $OSTYPE == "darwin"* ]]; then
+    alias topc='top -o cpu'
+    alias topm='top -o vsize'
+else
+    alias topc='top -o %CPU'
+    alias topm='top -o %MEM'
+fi
+
+alias rm='rm -vI --preserve-root'
+alias localip='ipconfig getifaddr en0'
+alias proxyip="curl ifconfig.co/json && echo"
+alias ipinfo="curl \"https://ipinfo.io/?token=011b38e90148d1\" && echo"
+alias ip="dig +short myip.opendns.com @resolver1.opendns.com"
+#============================= END OF alias ==============================
+
+#===========================================================================
+#                            zstyle
+#===========================================================================
+
+# zsh-notify
+zstyle ':notify:*' error-title "zsh: Job failed (#{time_elapsed}s)"
+zstyle ':notify:*' success-title "zsh: Job finished (#{time_elapsed}s)"
+zstyle ':notify:*' activate-terminal yes
+zstyle ':notify:*' command-complete-timeout 15
+
+
+
+#============================= END OF zstyle ==============================
+
+#===========================================================================
+#                            functions
+#===========================================================================
+function print::warning() { print -Pru2 -- "%F{3}[WARNING]%f: $*"; }
+function print::error()   { print -Pru2 -- "%F{1}%B[ERROR]%f%b: $*"; }
+function print::debug()   { print -Pru2 -- "%F{4}[DEBUG]%f: $*"; }
+function print::info()    { print -Pru2 -- "%F{5}[INFO]%f: $*"; }
+function print::notice()  { print -Pru2 -- "%F{13}[NOTICE]%f: $*"; }
+function print::success() { print -Pru2 -- "%F{2}%B[SUCCESS]%f%b: $*"; }
+
+whichcomp() {
+    for 1; do
+        ( print -raC 2 -- $^fpath/${_comps[$1]:?unknown command}(NP*$1*) )
+    done
+}
+from-where() {
+    echo $^fpath/$_comps[$1](N)
+    whence -v $_comps[$1]
+    #which $_comps[$1] 2>&1 | head
+}
+
+
+printcolors() {
+  echo -e '\r'
+  echo -e '\033[0K\033[1mBold\033[0m \033[7mInvert\033[0m \033[4mUnderline\033[0m'
+  echo -e '\033[0K\033[1m\033[7m\033[4mBold & Invert & Underline\033[0m'
+  echo
+  echo -e '\033[0K\033[31m Red \033[32m Green \033[33m Yellow \033[34m Blue \033[35m Magenta \033[36m Cyan \033[0m'
+  echo -e '\033[0K\033[1m\033[4m\033[31m Red \033[32m Green \033[33m Yellow \033[34m Blue \033[35m Magenta \033[36m Cyan \033[0m'
+  echo
+  echo -e '\033[0K\033[41m Red \033[42m Green \033[43m Yellow \033[44m Blue \033[45m Magenta \033[46m Cyan \033[0m'
+  echo -e '\033[0K\033[1m\033[4m\033[41m Red \033[42m Green \033[43m Yellow \033[44m Blue \033[45m Magenta \033[46m Cyan \033[0m'
+  echo
+  echo -e '\033[0K\033[30m\033[41m Red \033[42m Green \033[43m Yellow \033[44m Blue \033[45m Magenta \033[46m Cyan \033[0m'
+  echo -e '\033[0K\033[30m\033[1m\033[4m\033[41m Red \033[42m Green \033[43m Yellow \033[44m Blue \033[45m Magenta \033[46m Cyan \033[0m'
+}
+
+# Backup file
+bak() {
+  cp $1{,.orig}
+}
+
+pbcopydir() {
+  pwd | tr -d "\r\n" | pbcopy
+}
+
+osxnotify() {
+    osascript -e 'display notification "'"$*"'"'
+}
+
+# git diff before commit
+# function gg {
+#     br --conf ~/.config/broot/git-diff-conf.toml --git-status
+# }
+
+# Delete directory
+
+rmf() {
+  mkdir empty_dir
+  rsync -a --delete empty_dir/ $1
+  rm -rf empty_dir
+  rm -rf $1
+}
+
+diffd() {
+    diff -qr $1 $2 | grep -v -e 'DS_STORE' -e 'Thumbs' | sort
+}
+
+
+
+#============================= END OF functions ==============================
+
+
+
+#===========================================================================
+#                            Optional
+#===========================================================================
+
+(( $+commands[less] )) && export PAGER="less" && export LESS="RiMQXL" && export LESSCHARSET="utf-8"
+(( $+commands[nvim] )) && export EDITOR="nvim" && alias vi="nvim" && alias vim="nvim"
+(( $+commands[nix] )) && alias flakeup="nix flake update"
+(( $+commands[bat] )) && alias cat='bat --theme="Coldark-Dark" --italic-text=always --style="numbers,changes,header"'
+(( $+commands[kitty] )) && alias icat="kitty +kitten icat" && alias issh="kitty +kitten ssh"
+# (( $+commands[rustup] )) && alias rust-analyzer="rustup run nighly rust_analyzer"
+#============================= END OF Optional ==============================
+
+
+
+
+
+#===========================================================================
+#                            options
+#===========================================================================
+
+# Enable decent options. See http://zsh.sourceforge.net/Doc/Release/Options.html.
+setopt ALWAYS_TO_END        # full completions move cursor to the end
+setopt AUTO_CD              # `dirname` is equivalent to `cd dirname`
+setopt AUTO_PARAM_SLASH     # if completed parameter is a directory, add a trailing slash
+setopt AUTO_PUSHD           # `cd` pushes directories to the directory stack
+setopt COMPLETE_IN_WORD     # complete from the cursor rather than from the end of the word
+setopt EXTENDED_GLOB        # more powerful globbing
+setopt INTERACTIVE_COMMENTS # allow comments in command line
+setopt MULTIOS              # allow multiple redirections for the same fd
+setopt NO_BG_NICE           # don't nice background jobs
+setopt NO_FLOW_CONTROL      # disable start/stop characters in shell editor
+setopt PATH_DIRS            # perform path search even on command names with slashes
+setopt SHARE_HISTORY        # write and import history on every command
+setopt C_BASES              # print hex/oct numbers as 0xFF/077 instead of 16#FF/8#77
+
+# History
+setopt INC_APPEND_HISTORY     # Add commands to HISTFILE in order of execution
+setopt EXTENDED_HISTORY       # write timestamps to history
+setopt HIST_EXPIRE_DUPS_FIRST # if history needs to be trimmed, evict dups first
+setopt HIST_FIND_NO_DUPS      # don't show dups when searching history
+setopt HIST_IGNORE_DUPS       # don't add consecutive dups to history
+setopt HIST_IGNORE_SPACE      # don't add commands starting with space to history
+setopt HIST_REDUCE_BLANKS     # remove superfluous blanks
+setopt HIST_VERIFY            # if a command triggers history expansion, show it instead of running
+
+setopt AUTO_MENU       # Show completion menu on successive tab press
+setopt PUSHDIGNOREDUPS # Don’t push multiple copies of directories onto the directory stack
+setopt PUSHDMINUS      # Exchange meanings of + and - with a number in the directory stack
+setopt GLOBDOTS        # Dotfiles are matched in completions without specifying the dot
+setopt PROMPT_SUBST    # Allow expansion in prompts
+unsetopt LIST_BEEP     # Turn off completion list beeps
+
+#============================= END OF options ==============================
+
+#===========================================================================
+#                            Key Bindings
+#===========================================================================
+# Trim trailing newline from pasted text
+bracketed-paste() {
+    # Ref: https://unix.stackexchange.com/questions/693118
+    zle .$WIDGET && LBUFFER=${LBUFFER%$'\n'}
+}
+zle -N bracketed-paste
+
+#============================= END OF Key Bindings ==============================
+
+export ZSH_EVALCACHE_DIR="$ZDOTDIR/zsh-evalcache"
+export PNPM_HOME="$XDG_DATA_HOME/pnpm"
+
+
+zstyle ':completion::complete:*' cache-path ${XDG_CACHE_HOME}/zsh/zcompcache
+
+INSTALLER_NO_MODIFY_PATH=1
+source $HOME/.local/share/../bin/env
+
+# ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#808080,bold,bg=bold"
+
+
+
+# https://github.com/agkozak/dotfiles/blob/master/.zshrc
+# https://github.com/NickCrew/zsh-config/blob/master/lib/completion.zsh
+#
+#
+#
+#
+export TALOSCONFIG=/Users/bryan/src/ideas/homelab/terraform/output/talos-config.yaml
