@@ -156,11 +156,5 @@ return {
         },
       },
     },
-    config = function()
-      local capabilities = require("blink.cmp").get_lsp_capabilities()
-      local lspconfig = require("lspconfig")
-
-      lspconfig["ruff"].setup({ capabilities = capabilities })
-    end,
   },
 }

@@ -9,6 +9,17 @@ export XDG_CACHE_HOME="$HOME/.cache"
 fpath+=("$ZDOTDIR/completions")
 path=(/Applications/WezTerm.app/Contents/MacOS /Applications/kitty.app/Contents/MacOS $PNPM_HOME "$HOME/.cargo/bin" "$XDG_DATA_HOME/nvim/mason/bin" $path)
 
+export DO_NOT_TRACK=1
+
+# Make Python use UTF-8 encoding for output to stdin, stdout, and stderr.
+export PYTHONIOENCODING=UTF-8
+# Disable unnecessary, temporary files
+export PYTHONDONTWRITEBYTECODE=1
+# Prefer US English and use UTF-8.
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
+export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}/ripgrep/ripgreprc"
+export SEABORN_DATA="${XDG_CONFIG_HOME}/seaborn-data"
 
 # zim set up
 # zstyle ':zim:zmodule' use 'degit'
@@ -58,17 +69,6 @@ HISTFILESIZE=1000000000        # infinite command history
 #===========================================================================
 #                            exports
 #===========================================================================
-export DO_NOT_TRACK=1
-
-# Make Python use UTF-8 encoding for output to stdin, stdout, and stderr.
-export PYTHONIOENCODING=UTF-8
-# Disable unnecessary, temporary files
-export PYTHONDONTWRITEBYTECODE=1
-# Prefer US English and use UTF-8.
-export LANG="en_US.UTF-8"
-export LC_ALL="en_US.UTF-8"
-export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}/ripgrep/ripgreprc"
-export SEABORN_DATA="${XDG_CONFIG_HOME}/seaborn-data"
 
 
 #============================= END OF exports ==============================
@@ -218,7 +218,7 @@ diffd() {
 (( $+commands[nvim] )) && export EDITOR="nvim" && alias vi="nvim" && alias vim="nvim"
 (( $+commands[nix] )) && alias flakeup="nix flake update"
 (( $+commands[bat] )) && alias cat='bat --theme="Coldark-Dark" --italic-text=always --style="numbers,changes,header"'
-(( $+commands[kitty] )) && alias icat="kitty +kitten icat" && alias issh="kitty +kitten ssh"
+(( $+commands[kitty] )) && alias icat="kitten icat" && alias s="kitten ssh"
 # (( $+commands[rustup] )) && alias rust-analyzer="rustup run nighly rust_analyzer"
 #============================= END OF Optional ==============================
 
