@@ -250,7 +250,9 @@ setopt INC_APPEND_HISTORY     # Add commands to HISTFILE in order of execution
 setopt EXTENDED_HISTORY       # write timestamps to history
 setopt HIST_EXPIRE_DUPS_FIRST # if history needs to be trimmed, evict dups first
 setopt HIST_FIND_NO_DUPS      # don't show dups when searching history
+setopt HIST_SAVE_NO_DUPS
 setopt HIST_IGNORE_DUPS       # don't add consecutive dups to history
+setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_IGNORE_SPACE      # don't add commands starting with space to history
 setopt HIST_REDUCE_BLANKS     # remove superfluous blanks
 setopt HIST_VERIFY            # if a command triggers history expansion, show it instead of running

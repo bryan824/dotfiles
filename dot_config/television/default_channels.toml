@@ -40,7 +40,7 @@ preview_command = ":files:"
 # Shell history
 [[cable_channel]]
 name = "zsh-history"
-source_command = "sed '1!G;h;$!d' ${HISTFILE:-${HOME}/.zsh_history} | cut -d\";\" -f 2- | sort | uniq -u"
+source_command = "sed '1!G;h;$!d' ${HISTFILE:-${ZDOTDIR}/.zsh_history} | cut -d\";\" -f 2- | uniq -u"
 
 [[cable_channel]]
 name = "bash-history"
