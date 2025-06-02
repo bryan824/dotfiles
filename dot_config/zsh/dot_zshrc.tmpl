@@ -254,13 +254,10 @@ INSTALLER_NO_MODIFY_PATH=1
 # https://github.com/NickCrew/zsh-config/blob/master/lib/completion.zsh
 
 
-
-export TALOSCONFIG=/Users/bryan/src/ideas/homelab/terraform/output/talos-config.yaml
-
-
 {{- if eq .chezmoi.hostname "bryan" }}
+export TALOSCONFIG=/Users/bryan/src/ideas/homelab/terraform/output/talos-config.yaml
 {{ else if eq .chezmoi.hostname "PRTM-BTu" -}}
 if [ -f '$HOME/my/google-cloud-sdk/path.zsh.inc' ]; then . '$HOME/my/google-cloud-sdk/path.zsh.inc'; fi
+
 if [ -f '$HOME/my/google-cloud-sdk/completion.zsh.inc' ]; then . '$HOME/my/google-cloud-sdk/completion.zsh.inc'; fi
 {{- end }}
-
