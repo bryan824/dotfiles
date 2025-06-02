@@ -1,12 +1,12 @@
 # https://github.com/ttys3/my-kitty-config
-# To get a full list of supported fonts use the `kitty +list-fonts` command.
-# font_family FantasqueSansM Nerd Font Mono
-font_family Maple Mono NF CN
-font_size 16
-map ctrl+0 change_font_size all 0
-map ctrl+equal   change_font_size all +2.0
-map ctrl+minus       change_font_size all -2.0
+
+globinclude kitty.d/**/*.conf
+
+{{- if eq .chezmoi.hostname "bryan" }}
 editor /etc/profiles/per-user/bryan/bin/nvim
+{{ else if eq .chezmoi.hostname "PRTM-BTu" -}}
+editor /etc/profiles/per-user/bryan/bin/nvim
+{{- end }}
 shell /bin/zsh
 
 inactive_tab_font_style normal
@@ -28,27 +28,14 @@ allow_hyperlinks yes
 enable_audio_bell yes
 url_style curly
 visual_bell_duration 0.0
+active_border_color #44ffff
 
-### window
-window_border_width 0.5pt
-window_margin_width 0.5
-window_padding_width 0.5
-
-visual_window_select_characters 1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ
 
 ### scrollback
 scrollback_lines 50000
 scrollback_pager less +G -R
 wheel_scroll_multiplier 3.0
 
-### background
-background_opacity 1
-background_blur 0
-dynamic_background_opacity yes
-background_image ~/.config/kitty/dark.jpg
-background_image_layout cscaled
-background_tint 0.8
-dim_opacity 0.5
 
 ## cursor
 cursor_trail 5
@@ -98,13 +85,6 @@ term xterm-kitty
 
 shell_integration enabled
 
-
-
-
-
-
-
-
 # fat -- One (or optionally more) windows are shown full width on the top, the rest of the windows are shown side-by-side on the bottom
 # grid -- All windows are shown in a grid
 # horizontal -- All windows are shown side-by-side
@@ -118,8 +98,6 @@ enabled_layouts splits,stack
 hide_window_decorations titlebar-only
 initial_window_height 400
 initial_window_width 640
-
-
 
 # startup_session launch.conf
 
@@ -202,10 +180,6 @@ map kitty_mod+p>w run_kitten text hints --type word --program -
 
 map cmd+r combine : load_config_file : launch --type=overlay sh -c 'echo "kitty config reloaded."; echo; read -r -p "Press Enter to exit"; echo ""'
 
-
-# startup_session sessions/default
-
-include splits.conf
 
 # default alphabet see https://github.com/kovidgoyal/kitty/blob/0c4b20aa4e6b29ccf7c389e15d7ff5189f8e98f5/kittens/hints/main.py#L125
 # qwerty alphabets borrow from https://github.com/fcsonline/tmux-thumbs#Alphabets

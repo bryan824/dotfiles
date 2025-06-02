@@ -4,4 +4,4 @@
 vim.g.lazyvim_python_ruff = "ruff_lsp"
 vim.g.lazyvim_picker = "snacks"
 
-vim.g.lazyvim_blink_main = false
+vim.g.lazyvim_blink_main = true
