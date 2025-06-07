@@ -1,28 +1,14 @@
 #!/usr/bin/env zsh
 # zmodload zsh/zprof
 
-export XDG_CONFIG_HOME="$HOME/.config"
-export XDG_DATA_HOME="$HOME/.local/share"
-export XDG_STATE_HOME="$HOME/.local/state"
-export XDG_CACHE_HOME="$HOME/.cache"
-export ZSH_EVALCACHE_DIR="$ZDOTDIR/zsh-evalcache"
-export PNPM_HOME="$XDG_DATA_HOME/pnpm"
-export DO_NOT_TRACK=1
 
-# Make Python use UTF-8 encoding for output to stdin, stdout, and stderr.
-export PYTHONIOENCODING=UTF-8
-# Disable unnecessary, temporary files
-export PYTHONDONTWRITEBYTECODE=1
-# Prefer US English and use UTF-8.
-export LANG="en_US.UTF-8"
-export LC_ALL="en_US.UTF-8"
-export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}/ripgrep/ripgreprc"
-export SEABORN_DATA="${XDG_CONFIG_HOME}/seaborn-data"
+# load all files end with .zsh in $ZDOTDIR
+for file in $ZDOTDIR/*.zsh; do
+  if [[ -f $file ]]; then
+    source $file
+  fi
+done
 
-# zim set up
-# zstyle ':zim:zmodule' use 'degit'
-export ZIM_CONFIG_FILE="$ZDOTDIR/.zimrc"
-export ZIM_HOME="$ZDOTDIR/.zim"
 
 fpath+=("$ZDOTDIR/completions")
 path=(/Applications/WezTerm.app/Contents/MacOS /Applications/kitty.app/Contents/MacOS $PNPM_HOME "$HOME/.cargo/bin" "$HOME/.local/bin" "$XDG_DATA_HOME/nvim/mason/bin" $path)
@@ -53,6 +39,7 @@ source ${ZIM_HOME}/modules/zsh-defer/zsh-defer.plugin.zsh
 (($+commands[mise])) && zsh-defer _evalcache mise activate zsh
 (($+commands[starship])) && _evalcache starship init zsh
 (($+commands[tv])) && zsh-defer _evalcache tv init zsh
+(($+commands[k9s])) && zsh-defer _evalcache k9s completion zsh
 
 # Activate Powerlevel10k Instant Prompt.
 # if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
@@ -68,61 +55,7 @@ SAVEHIST=1000000000            # infinite command history
 HISTFILESIZE=1000000000        # infinite command history
 
 
-#===========================================================================
-#                            exports
-#===========================================================================
 
-
-#============================= END OF exports ==============================
-
-#===========================================================================
-#                            alias
-#===========================================================================
-alias path="printf '%s\n' $path"
-alias fpath="printf '%s\n' $fpath"
-(($+commands[kubectl])) && alias k="kubectl"
-
-
-if (( $+commands[eza] )); then
-    alias ls='eza --group-directories-first --icons --git -bh'
-    alias ll='ls -l --git'        # Long format, git status
-    alias l='ll -a'               # Long format, all files
-    alias lr='ll -T'              # Long format, recursive as a tree
-    alias lx='ll -sextension'     # Long format, sort by extension
-    alias lk='ll -ssize'          # Long format, largest file size last
-    alias lt='ll -smodified'      # Long format, newest modification time last
-    alias lc='ll -schanged'       # Long format, newest status change (ctime) last
-else
-fi
-
-
-alias df='df -H'
-alias du='du -d 1 -h | sort -h'
-
-if (( $+commands[rsync] )); then
-    # alias cp="rsync -ahvP --backup-dir=/tmp/bkp"
-    # alias update="rsync -uahvP --backup-dir=/tmp/bkp"
-    # alias mv="rsync -uahvP --backup-dir=/tmp/bkp --remove-source-files"
-else
-    alias cp="cp -aivR"
-    alias update="cp -uaiv"
-    alias mv="mv -iv"
-fi
-
-if [[ $OSTYPE == "darwin"* ]]; then
-    alias topc='top -o cpu'
-    alias topm='top -o vsize'
-else
-    alias topc='top -o %CPU'
-    alias topm='top -o %MEM'
-fi
-
-alias rm='rm -vI --preserve-root'
-alias localip='ipconfig getifaddr en0'
-alias proxyip="curl ifconfig.co/json && echo"
-alias ipinfo="curl \"https://ipinfo.io/?token=011b38e90148d1\" && echo"
-alias ip="dig +short myip.opendns.com @resolver1.opendns.com"
-#============================= END OF alias ==============================
 
 #===========================================================================
 #                            zstyle
@@ -217,7 +150,7 @@ diffd() {
 #===========================================================================
 
 (( $+commands[less] )) && export PAGER="less" && export LESS="RiMQXL" && export LESSCHARSET="utf-8"
-(( $+commands[nvim] )) && export EDITOR="nvim" && alias vi="nvim" && alias vim="nvim"
+(( $+commands[nvim] )) && export EDITOR="nvim" && alias v='nvim' && alias vi="nvim" && alias vim="nvim"
 (( $+commands[nix] )) && alias flakeup="nix flake update"
 (( $+commands[bat] )) && alias cat='bat --theme="Coldark-Dark" --italic-text=always --style="numbers,changes,header"'
 (( $+commands[kitty] )) && alias icat="kitten icat" && alias s="kitten ssh"
@@ -244,7 +177,7 @@ zle -N bracketed-paste
 
 zstyle ':completion::complete:*' cache-path ${XDG_CACHE_HOME}/zsh/zcompcache
 
-INSTALLER_NO_MODIFY_PATH=1
+
 
 # ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#808080,bold,bg=bold"
 
@@ -255,7 +188,9 @@ INSTALLER_NO_MODIFY_PATH=1
 
 
 {{- if eq .chezmoi.hostname "bryan" }}
+
 export TALOSCONFIG=/Users/bryan/src/ideas/homelab/terraform/output/talos-config.yaml
+
 {{ else if eq .chezmoi.hostname "PRTM-BTu" -}}
 if [ -f '$HOME/my/google-cloud-sdk/path.zsh.inc' ]; then . '$HOME/my/google-cloud-sdk/path.zsh.inc'; fi
 
