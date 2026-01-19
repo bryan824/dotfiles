@@ -25,3 +25,5 @@ export ZIM_HOME="$ZDOTDIR/.zim"
 
 # https://docs.astral.sh/uv/configuration/environment/#installer_no_modify_path
 export INSTALLER_NO_MODIFY_PATH=1
+
+export PATH="$HOME/.cache/.bun/bin:$PATH"

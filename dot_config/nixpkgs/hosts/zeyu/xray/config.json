@@ -1,0 +1,274 @@
+{
+  "log": {
+    "loglevel": "debug",
+    "access": "",
+    "error": ""
+  },
+  "dns": {
+    "servers": [
+      "https+local://1.1.1.1/dns-query",
+      {
+        "address": "https+local://223.5.5.5/dns-query",
+        "domains": [
+          "geosite:bilibili",
+          "geosite:sina",
+          "domain:sinaimg.cn",
+          "domain:weibo.cn",
+          "domain:f.video.weibocdn.com"
+        ]
+      }
+    ],
+    "clientIp": "1.2.3.4",
+    "tag": "dns-in"
+  },
+  "routing": {
+    "domainStrategy": "IPIfNonMatch",
+    "balancers": [
+      {
+        "tag": "proxy",
+        "selector": [
+          "vless",
+          "vmess"
+        ],
+        "strategy": "latency",
+        "interval": 60,
+        "totalMeasures": 2,
+        "delay": 1,
+        "timeout": 6,
+        "tolerance": 300,
+        "probeTarget": "tls:www.bing.com:443",
+        "probeContent": "HEAD / HTTP/1.1\r\n\r\n"
+      }
+    ],
+    "rules": [
+      {
+        "type": "field",
+        "domain": [
+          "domain:gate.hockeyapp.net",
+          "geosite:category-ads-all"
+        ],
+        "outboundTag": "block"
+      },
+      {
+        "type": "field",
+        "outboundTag": "vless",
+        "protocol": [
+          "bittorrent"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "domain": [
+          "domain:bilibili.com"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "vmess",
+        "domain": [
+          "domain:ipinfo.io",
+          "domain:mozilla.org",
+          "domain:speed.cloudflare.com",
+          "full:ip.istatmenus.app",
+          "domain:adguard.com",
+          "domain:verizon.com",
+          "domain:meetup.com",
+          "domain:startpage.com",
+          "domain:nixos.org",
+          "domain:googletagmanager.com",
+          "domain:teleosaurs.xyz",
+          "keyword:zeit",
+          "domain:thepiratebay.org",
+          "geosite:youtube",
+          "geosite:google",
+          "geosite:github",
+          "geosite:reddit"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "ip": [
+          "geoip:cn",
+          "geoip:private",
+          "223.5.5.5/32",
+          "119.29.29.29/32",
+          "180.76.76.76/32",
+          "114.114.114.114/32",
+          "1.1.1.1/32",
+          "1.0.0.1/32",
+          "8.8.8.8/32",
+          "8.8.4.4/32"
+        ]
+      },
+      {
+        "type": "field",
+        "network": "udp,tcp",
+        "outboundTag": "direct"
+      },
+      {
+        "type": "field",
+        "ip": [
+          "0.0.0.0/0",
+          "::/0"
+        ],
+        "outboundTag": "direct"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "protocol": "socks",
+      "listen": "127.0.0.1",
+      "port": 1080,
+      "tag": "socks-in",
+      "settings": {
+        "ip": "127.0.0.1",
+        "udp": true,
+        "auth": "noauth"
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls"
+        ]
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "settings": {
+        "domainStrategy": "UseIP"
+      },
+      "tag": "direct"
+    },
+    {
+      "protocol": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "198.148.111.87",
+            "port": 443,
+            "users": [
+              {
+                "id": "67F85AD3-A521-458C-A5B3-2DDB1B07A8F4",
+                "flow": "xtls-rprx-direct",
+                "encryption": "none",
+                "level": 0
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "xtls",
+        "xtlsSettings": {
+          "serverName": "v2.noidea.life"
+        }
+      },
+      "tag": "tcpxtls"
+    },
+    {
+      "protocol": "vmess",
+      "settings": {
+        "vnext": [
+          {
+            "address": "v2.noidea.life",
+            "port": 443,
+            "users": [
+              {
+                "id": "67F85AD3-A521-458C-A5B3-2DDB1B07A8F4",
+                "security": "none",
+                "level": 0
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "tls",
+        "tlsSettings": {
+          "serverName": "v2.noidea.life"
+        },
+        "wsSettings": {
+          "path": "/vmess"
+        }
+      },
+      "tag": "vmess"
+    },
+    {
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "v2.noidea.life",
+            "port": 443,
+            "users": [
+              {
+                "id": "67F85AD3-A521-458C-A5B3-2DDB1B07A8F4",
+                "encryption": "none",
+                "level": 0
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "tls",
+        "tlsSettings": {
+          "serverName": "v2.noidea.life"
+        },
+        "wsSettings": {
+          "path": "/vless"
+        }
+      },
+      "tag": "vless"
+    },
+    {
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "216.24.255.3",
+            "port": 443,
+            "users": [
+              {
+                "id": "1d990690-73cc-3035-26bc-dff937c29585",
+                "flow": "xtls-rprx-direct",
+                "encryption": "none",
+                "level": 0
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "xtls",
+        "xtlsSettings": {
+          "serverName": "divineengine.net"
+        }
+      },
+      "tag": "de"
+    },
+    {
+      "protocol": "blackhole",
+      "settings": {
+        "response": {
+          "type": "http"
+        }
+      },
+      "tag": "block"
+    }
+  ]
+}
