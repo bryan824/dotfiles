@@ -79,8 +79,8 @@ confirm_os_window_close 0
 # title parse see https://github.com/kovidgoyal/kitty/blob/587f44ad4eb7fe545b0e580168cf0c32117b87c7/kitty/tab_bar.py#L175
 tab_title_template "{fmt.fg.red}{bell_symbol}{activity_symbol}{fmt.fg.tab}{index}:{'🇿' if layout_name == 'stack' and num_windows > 1 else ''}{title}"
 
-# term xterm-kitty
-term xterm-256color
+term xterm-kitty
+# term xterm-256color
 
 
 shell_integration enabled
@@ -190,4 +190,3 @@ map ctrl+a>space kitten hints --alphabet asdfqwerzxcvjklmiuopghtybn1234567890 --
 # Catppuccin-Mocha
 include current-theme.conf
 # END_KITTY_THEME
-

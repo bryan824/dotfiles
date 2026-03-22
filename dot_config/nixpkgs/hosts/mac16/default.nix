@@ -58,7 +58,7 @@ in {
     xh
     btop
     # dotenv-linter
-    # ffmpeg
+    ffmpeg
     # ghostscript
     # bettercap
     git-cliff
