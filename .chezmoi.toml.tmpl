@@ -1,3 +1,4 @@
 [data]
     gitName = {{ promptStringOnce . "gitName" "Git full name" | quote }}
     gitEmail = {{ promptStringOnce . "gitEmail" "Git email address" | quote }}
+    whoami = {{ promptStringOnce . "whoami" "Who is this dotfiles for (e.g. bryan)" | quote }}

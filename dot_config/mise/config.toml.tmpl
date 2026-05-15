@@ -1,13 +1,17 @@
 [tools]
 bun = "latest"
 chezmoi = "latest"
-cilium-cli = "latest"
 eza = "latest"
+{{- if and (eq .whoami "bryan") (eq .chezmoi.arch "arm64") }}
 fd = "latest"
+{{- end }}
 fzf = "latest"
+{{- if eq .whoami "bryan" }}
+cilium-cli = "latest"
 helm = "latest"
 k9s = "latest"
 kubectl = "latest"
+{{- end }}
 lazygit = "latest"
 neovim = "latest"
 node = "latest"
