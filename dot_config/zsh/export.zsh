@@ -33,6 +33,7 @@ export ZIM_HOME="$ZDOTDIR/.zim"
 # Must come before any $+commands[...] checks below so tools in these
 # directories are visible when we test for their existence.
 path=(
+  "$XDG_DATA_HOME/mise/shims"
   "$HOME/.cache/.bun/bin"
   /Applications/WezTerm.app/Contents/MacOS
   /Applications/kitty.app/Contents/MacOS
