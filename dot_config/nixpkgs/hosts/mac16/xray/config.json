@@ -1,0 +1,284 @@
+{
+  "log": {
+    "loglevel": "warning",
+    "access": "/Users/bryan/Library/Logs/xray.log",
+    "error": "/Users/bryan/Library/Logs/xray.err.log",
+    "dnsLog": true
+  },
+  "dns": {
+    "servers": [
+      "10.24.0.1",
+      "https+local://1.1.1.1/dns-query",
+      {
+        "address": "https+local://223.5.5.5/dns-query",
+        "domains": [
+          "geosite:bilibili",
+          "geosite:sina",
+          "domain:sinaimg.cn",
+          "domain:weibo.cn",
+          "domain:f.video.weibocdn.com"
+        ]
+      }
+    ],
+    "clientIp": "1.2.3.4",
+    "tag": "dns-in"
+  },
+  "routing": {
+    "domainStrategy": "IPIfNonMatch",
+    "balancers": [
+      {
+        "tag": "proxy",
+        "selector": ["tcpxtls"]
+      }
+    ],
+    "rules": [
+      {
+        "type": "field",
+        "outboundTag": "block",
+        "domain": ["domain:gate.hockeyapp.net", "geosite:category-ads-all"]
+      },
+      {
+        "type": "field",
+        "outboundTag": "vless",
+        "protocol": ["bittorrent"]
+      },
+      {
+        "type": "field",
+        "balancerTag": "proxy",
+        "domain": [
+          "domain:ipinfo.io",
+          "domain:ifconfig.co",
+          "domain:mozilla.org",
+          "domain:jable.tv",
+          "domain:speed.cloudflare.com",
+          "domain:fast.com",
+          "domain:nflxvideo.net",
+          "geosite:youtube",
+          "geosite:reddit",
+          "full:1337x.netlify.app",
+          "full:ip.istatmenus.app",
+          "full:reddit.nbabite.com"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "domain": ["geosite:google", "geosite:microsoft"]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "domain": ["geosite:hupu", "domain:petsmartcharities.org"]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "ip": [
+          "geoip:cn",
+          "geoip:private",
+          "223.5.5.5/32",
+          "119.29.29.29/32",
+          "180.76.76.76/32",
+          "114.114.114.114/32",
+          "1.1.1.1/32",
+          "1.0.0.1/32",
+          "8.8.8.8/32",
+          "8.8.4.4/32"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "domain": [
+          "domain:adguard.com",
+          "domain:liveonscore.tv",
+          "domain:verizon.com",
+          "domain:meetup.com",
+          "domain:dev.home",
+          "domain:hupu.com",
+          "geosite:bilibili",
+          "domain:startpage.com",
+          "domain:googletagmanager.com",
+          "domain:teleosaurs.xyz",
+          "domain:kintohub.com",
+          "keyword:zeit",
+          "verstandtime.ghg.com",
+          "domain:thepiratebay.org",
+          "geosite:apple-cn",
+          "geosite:google-cn",
+          "geosite:tld-cn"
+        ]
+      },
+      {
+        "type": "field",
+        "network": "udp,tcp",
+        "outboundTag": "tcpxtls"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "protocol": "socks",
+      "listen": "127.0.0.1",
+      "port": 1080,
+      "tag": "socks-in",
+      "settings": {
+        "ip": "127.0.0.1",
+        "udp": true,
+        "auth": "noauth"
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    {
+      "port": 1081,
+      "protocol": "http",
+      "tag": "http-in",
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      },
+      "settings": {
+        "auth": "noauth",
+        "udp": false
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "v2.kirinjade.com",
+            "port": 443,
+            "users": [
+              {
+                "id": "67F85AD3-A521-458C-A5B3-2DDB1B07A8F4",
+                "flow": "xtls-rprx-direct",
+                "encryption": "none",
+                "level": 0
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "xtls",
+        "xtlsSettings": {
+          "serverName": "v2.kirinjade.com",
+          "allowInsecure": true
+        }
+      },
+      "tag": "tcpxtlss"
+    },
+    {
+      "protocol": "vmess",
+      "settings": {
+        "vnext": [
+          {
+            "address": "v2.kirinjade.com",
+            "port": 443,
+            "users": [
+              {
+                "id": "67F85AD3-A521-458C-A5B3-2DDB1B07A8F4",
+                "encryption": "none",
+                "level": 0
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "tls",
+        "tlsSettings": {
+          "serverName": "v2.kirinjade.com"
+        },
+        "wsSettings": {
+          "path": "/vmess"
+        }
+      },
+      "tag": "tcpxtls"
+    },
+    {
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "v2.kirinjade.com",
+            "port": 443,
+            "users": [
+              {
+                "id": "67F85AD3-A521-458C-A5B3-2DDB1B07A8F4",
+                "encryption": "none",
+                "level": 0
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "tls",
+        "tlsSettings": {
+          "serverName": "v2.kirinjade.com"
+        },
+        "wsSettings": {
+          "path": "/vless"
+        }
+      },
+      "tag": "vless"
+    },
+    {
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "216.24.255.3",
+            "port": 443,
+            "users": [
+              {
+                "id": "1d990690-73cc-3035-26bc-dff937c29585",
+                "flow": "xtls-rprx-direct",
+                "encryption": "none",
+                "level": 0
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "xtls",
+        "xtlsSettings": {
+          "serverName": "divineengine.net"
+        }
+      },
+      "tag": "de"
+    },
+    {
+      "protocol": "freedom",
+      "settings": {
+        "domainStrategy": "UseIPv4"
+      },
+      "tag": "direct"
+    },
+    {
+      "protocol": "blackhole",
+      "settings": {
+        "response": {
+          "type": "http"
+        }
+      },
+      "tag": "block"
+    }
+  ]
+}

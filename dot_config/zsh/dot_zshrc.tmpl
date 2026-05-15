@@ -1,0 +1,77 @@
+#!/usr/bin/env zsh
+# zmodload zsh/zprof  # uncomment to profile startup time
+
+# Source all *.zsh config files.
+# Glob qualifiers: N = null-glob (no error if empty), . = regular files only.
+for file ($ZDOTDIR/*.zsh(N.)) source $file
+
+fpath+=("$ZDOTDIR/completions")
+
+# ---------------------------------------------------------------------------
+# zim bootstrap
+# ---------------------------------------------------------------------------
+
+# Download zimfw if missing.
+if [[ ! -e ${ZIM_HOME}/zimfw.zsh ]]; then
+  curl -fsSL --create-dirs -o ${ZIM_HOME}/zimfw.zsh \
+      https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh
+fi
+
+# Install missing modules and regenerate init.zsh if stale.
+if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZIM_CONFIG_FILE:-${ZDOTDIR:-${HOME}}/.zimrc} ]]; then
+  source ${ZIM_HOME}/zimfw.zsh init -q
+fi
+
+zstyle ':zim' disable-version-check yes
+source ${ZIM_HOME}/init.zsh
+
+# ---------------------------------------------------------------------------
+# Deferred plugin loading
+# ---------------------------------------------------------------------------
+# zsh-defer pushes work past the first prompt, keeping startup instant.
+# zsh-syntax-highlighting must be sourced last — it wraps ZLE widgets.
+
+source ${ZIM_HOME}/modules/zsh-defer/zsh-defer.plugin.zsh
+
+# history-substring-search bindings must be set after the plugin is loaded.
+function _load_zsh_history_substring_search() {
+  source ${ZIM_HOME}/modules/zsh-history-substring-search/zsh-history-substring-search.zsh
+  bindkey '^[[A' history-substring-search-up
+  bindkey '^[[B' history-substring-search-down
+  zmodload -F zsh/terminfo +p:terminfo
+  if [[ -n ${terminfo[kcuu1]} && -n ${terminfo[kcud1]} ]]; then
+    bindkey ${terminfo[kcuu1]} history-substring-search-up
+    bindkey ${terminfo[kcud1]} history-substring-search-down
+  fi
+  bindkey '^P' history-substring-search-up
+  bindkey '^N' history-substring-search-down
+  bindkey -M vicmd 'k' history-substring-search-up
+  bindkey -M vicmd 'j' history-substring-search-down
+}
+zsh-defer _load_zsh_history_substring_search
+zsh-defer source ${ZIM_HOME}/modules/zsh-autosuggestions/zsh-autosuggestions.zsh
+zsh-defer source ${ZIM_HOME}/modules/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# Tool completions / hooks — deferred for startup performance.
+# starship is intentionally not deferred: it must render before the first prompt.
+(($+commands[kopia]   )) && zsh-defer _evalcache kopia --completion-script-zsh
+(($+commands[atuin]   )) && zsh-defer _evalcache atuin init zsh
+(($+commands[direnv]  )) && zsh-defer _evalcache direnv hook zsh
+(($+commands[mise]    )) && zsh-defer _evalcache mise activate zsh --shims
+(($+commands[zoxide]      )) && zsh-defer _evalcache zoxide init zsh
+(($+commands[starship])) && _evalcache starship init zsh
+(($+commands[tv]      )) && zsh-defer _evalcache tv init zsh
+(($+commands[k9s]     )) && zsh-defer _evalcache k9s completion zsh
+
+# ---------------------------------------------------------------------------
+# Host-specific
+# ---------------------------------------------------------------------------
+
+{{ if eq .chezmoi.hostname "bryan" }}
+export TALOSCONFIG=/Users/bryan/src/ideas/homelab/terraform/output/talos-config.yaml
+{{ else if eq .chezmoi.hostname "PRTM-BTu" -}}
+[[ -d "$HOME/my/google-cloud-sdk" ]] && {
+  path=("$HOME/my/google-cloud-sdk/bin" $path)
+  zsh-defer source "$HOME/my/google-cloud-sdk/completion.zsh.inc"
+}
+{{- end }}

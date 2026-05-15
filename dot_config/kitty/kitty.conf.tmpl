@@ -1,0 +1,187 @@
+# https://github.com/ttys3/my-kitty-config
+
+globinclude kitty.d/**/*.conf
+
+shell /bin/zsh
+
+inactive_tab_font_style normal
+active_tab_font_style bold
+adjust_column_width 0
+adjust_line_height 0
+allow_remote_control yes
+click_interval -1.0
+
+
+## copy and paste
+paste_actions quote-urls-at-prompt
+copy_on_select yes
+
+## display
+strip_trailing_spaces never
+show_hyperlink_targets yes
+allow_hyperlinks yes
+enable_audio_bell yes
+url_style curly
+visual_bell_duration 0.0
+active_border_color #44ffff
+
+
+### scrollback
+scrollback_lines 50000
+scrollback_pager less +G -R
+wheel_scroll_multiplier 3.0
+
+
+## cursor
+cursor_trail 5
+cursor_trail_decay 0.1 0.4
+cursor_blink_interval 0.5
+cursor_shape block
+cursor_stop_blinking_after 15.0
+# cursor_text_color #363944
+
+
+## mouse
+mouse_hide_wait -1
+disable_ligatures cursor
+
+
+## Performance tuning
+repaint_delay 10
+input_delay 3
+sync_to_monitor yes
+
+kitty_mod cmd
+macos_option_as_alt yes
+# https://github.com/mrjones2014/smart-splits.nvim#kitty
+macos_option_as_alt both
+# macos_titlebar_color background
+open_url_modifiers cmd
+open_url_with default
+remember_window_size no
+
+select_by_word_characters :@-./_~?&=%+#
+tab_activity_symbol 
+tab_bar_edge top
+tab_bar_style powerline
+
+# with Shell integration enabled, using negative values means windows sitting at a shell prompt are not counted,
+# only windows where some command is currently running.
+# see https://sw.kovidgoyal.net/kitty/conf/#opt-kitty.confirm_os_window_close
+confirm_os_window_close 0
+
+# emoji from https://emojipedia.org/regional-indicator-symbol-letter-z/
+# title parse see https://github.com/kovidgoyal/kitty/blob/587f44ad4eb7fe545b0e580168cf0c32117b87c7/kitty/tab_bar.py#L175
+tab_title_template "{fmt.fg.red}{bell_symbol}{activity_symbol}{fmt.fg.tab}{index}:{'🇿' if layout_name == 'stack' and num_windows > 1 else ''}{title}"
+
+term xterm-kitty
+# term xterm-256color
+
+
+shell_integration enabled
+
+# fat -- One (or optionally more) windows are shown full width on the top, the rest of the windows are shown side-by-side on the bottom
+# grid -- All windows are shown in a grid
+# horizontal -- All windows are shown side-by-side
+# splits -- Windows arranged in arbitrary patterns created using horizontal and vertical splits
+# stack -- Only a single maximized window is shown at a time
+# tall -- One (or optionally more) windows are shown full height on the left, the rest of the windows are shown one below the other on the right
+# vertical -- All windows are shown one below the other
+
+enabled_layouts splits,stack
+
+hide_window_decorations titlebar-only
+initial_window_height 400
+initial_window_width 640
+
+# startup_session launch.conf
+
+map super+r load_config_file
+map super+1 goto_tab 1
+map super+2 goto_tab 2
+map super+3 goto_tab 3
+map super+4 goto_tab 4
+map super+5 goto_tab 5
+map super+6 goto_tab 6
+map super+7 goto_tab 7
+map super+8 goto_tab 8
+map super+9 goto_tab 9
+
+box_drawing_scale 0.001, 1, 1.5, 2
+
+# Clipboard
+map super+v paste_from_clipboard
+map ctrl+shift+s paste_from_selection
+map super+c copy_to_clipboard
+map shift+insert paste_from_selection
+
+# Scrolling
+map ctrl+shift+up scroll_line_up
+map ctrl+shift+down scroll_line_down
+map ctrl+shift+k scroll_line_up
+map ctrl+shift+j scroll_line_down
+map ctrl+shift+page_up scroll_page_up
+map ctrl+shift+page_down scroll_page_down
+map ctrl+shift+home scroll_home
+map ctrl+shift+end scroll_end
+map ctrl+shift+h show_scrollback
+
+# Window management
+macos_quit_when_last_window_closed yes
+map ctrl+a>x close_window
+map ctrl+a>] next_window
+map ctrl+a>[ previous_window
+map ctrl+a>period move_window_forward
+map ctrl+a>comma move_window_backward
+
+# Miscellaneous
+# map ctrl+shift+up increase_font_size
+# map ctrl+shift+down decrease_font_size
+# map ctrl+shift+backspace restore_font_size
+
+
+map ctrl+shift+left resize_window narrower
+map ctrl+shift+right resize_window wider
+map ctrl+shift+up resize_window taller
+map ctrl+shift+down resize_window shorter 3
+# reset all windows in the tab to default sizes
+map ctrl+shift+0 resize_window reset
+
+# zoom toggle https://sw.kovidgoyal.net/kitty/kittens/custom/#using-kittens-to-script-kitty-without-any-terminal-ui
+map kitty_mod+z kitten zoom_toggle.py
+# https://sw.kovidgoyal.net/kitty/actions/#action-toggle_layout
+#map ctrl+a>z toggle_layout stack
+
+# Open a currently visible URL using the keyboard. The program used to open the
+# URL is specified in open_url_with.
+map kitty_mod+o run_kitten text hints
+
+# Select a path/filename and insert it into the terminal. Useful, for instance to
+# run git commands on a filename output from a previous git command.
+map kitty_mod+p>f run_kitten text hints --type path --program -
+
+# Select a path/filename and open it with the default open program.
+map kitty_mod+p>shift+f run_kitten text hints --type path
+
+# Select a line of text and insert it into the terminal. Use for the
+# output of things like: ls -1
+map kitty_mod+p>l run_kitten text hints --type line --program -
+
+# Select words and insert into terminal.
+map kitty_mod+p>w run_kitten text hints --type word --program -
+
+# Select OSC hyperlink
+# map ctrl+shift+p>y kitten hints --type hyperlink
+
+map cmd+r combine : load_config_file : launch --type=overlay sh -c 'echo "kitty config reloaded."; echo; read -r -p "Press Enter to exit"; echo ""'
+
+
+# default alphabet see https://github.com/kovidgoyal/kitty/blob/0c4b20aa4e6b29ccf7c389e15d7ff5189f8e98f5/kittens/hints/main.py#L125
+# qwerty alphabets borrow from https://github.com/fcsonline/tmux-thumbs#Alphabets
+map ctrl+a>space kitten hints --alphabet asdfqwerzxcvjklmiuopghtybn1234567890 --customize-processing custom-hints.py
+
+
+# BEGIN_KITTY_THEME
+# Catppuccin-Mocha
+include current-theme.conf
+# END_KITTY_THEME
