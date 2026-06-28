@@ -1,0 +1,29 @@
+{
+  "lastChangelogVersion": "0.80.2",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.5",
+  "defaultThinkingLevel": "xhigh",
+  "npmCommand": ["mise", "exec", "node@26", "--", "npm"],
+  "packages": [
+    {
+      "source": "git:github.com/bryan824/kirin-pi",
+      "skills": []
+    },
+    "npm:pi-dynamic-workflows",
+    "npm:pi-context-usage",
+    "npm:pi-cache-graph",
+    "npm:@eko24ive/pi-ask",
+    "npm:pi-codex-goal",
+    "npm:pi-powerline-footer",
+    "npm:pi-agent-browser-native",
+    "npm:pi-rtk-optimizer",
+    "npm:@ff-labs/pi-fff",
+    "npm:@ogulcancelik/pi-herdr",
+    "npm:@cnife/pi-simple-plannotator",
+    "npm:pi-web-access",
+    "npm:pi-intercom",
+    "npm:pi-loadout",
+    "npm:@tintinweb/pi-subagents"
+  ],
+  "theme": "dark"
+}
