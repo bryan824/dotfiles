@@ -1,0 +1,14 @@
+zmodule mroth/evalcache
+zmodule xvoland/Extract --source extract.sh --cmd 'alias x="extract"'
+# zmodule romkatv/powerlevel10k
+# zmodule Aloxaf/fzf-tab
+# zmodule fzf
+zmodule romkatv/zsh-defer -d
+
+zmodule zsh-users/zsh-completions --fpath src
+zmodule completion
+
+# Deferred ZLE plugins — bindings are set in .zshrc after load
+zmodule zsh-users/zsh-history-substring-search -d
+zmodule zsh-users/zsh-syntax-highlighting -d
+zmodule zsh-users/zsh-autosuggestions -d

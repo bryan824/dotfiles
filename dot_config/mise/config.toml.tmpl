@@ -1,0 +1,58 @@
+[settings]
+minimum_release_age = "0s"
+experimental = true
+
+[settings.npm]
+bun = true
+package_manager = "bun"
+
+[tools]
+age = "latest"
+rtk = "latest"
+watchexec = "latest"
+bat = "latest"
+bottom = "latest"
+bun = "latest"
+node = "latest"
+chezmoi = "latest"
+claude-code = "latest"
+eza = "latest"
+fzf = "latest"
+herdr = "latest"
+lazygit = "latest"
+neovim = "latest"
+opencode = "latest"
+pi = "latest"
+ripgrep = "latest"
+starship = "latest"
+television = "latest"
+usage = "latest"
+zoxide = "latest"
+
+{{- if eq .profile "bryan" }}
+duckdb = "latest"
+helm = "latest"
+k9s = "latest"
+prek = "latest"
+kubectl = "latest"
+kustomize = "latest"
+tokei = "latest"
+{{- if eq .role "personal" }}
+"npm:agent-browser" = "latest"
+yazi = "latest"
+cilium-cli = "latest"
+gemini-cli = "latest"
+"github:kopia/kopia" = "latest"
+rclone = "latest"
+supabase = "latest"
+talosctl = "latest"
+{{- end }}
+{{- else }}
+gemini-cli = "latest"
+"github:kopia/kopia" = "latest"
+rclone = "latest"
+{{- end }}
+
+{{- if eq .chezmoi.arch "arm64" }}
+fd = "latest"
+{{- end }}

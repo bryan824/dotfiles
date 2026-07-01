@@ -1,0 +1,56 @@
+**/.claude/settings.local.json
+.pi/
+.claude/
+.opencode/
+.omo/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# Env / direnv
+.envrc
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+
+# Editors / merge artifacts
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.orig
+*.rej
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+.tox/
+.nox/
+.hypothesis/
+.pyre/
+
+# Node / JS
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+
+# Rust
+target/

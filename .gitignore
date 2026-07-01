@@ -1,0 +1,5 @@
+# Python bytecode from local script checks.
+__pycache__/
+
+# Generated/remote-fetched agent skills are installed during chezmoi apply.
+dot_agents/skills/
