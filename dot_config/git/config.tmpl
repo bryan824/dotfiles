@@ -1,0 +1,9 @@
+{{- if and .gitName .gitEmail }}
+[user]
+	name = {{ .gitName }}
+	email = {{ .gitEmail }}
+{{- end }}
+[pull]
+    rebase = true
+[alias]
+	reinit = "!f(){ branch=$(git branch --show-current) || exit 1; test -n \"$branch\" || { echo \"Not on a branch\" >&2; exit 1; }; remote=$(git config branch.\"$branch\".remote || echo origin); git add -A && commit=$(git commit-tree \"$(git write-tree)\" -m \"${1:-Init commit}\") && git reset --hard \"$commit\" && git push --force-with-lease \"$remote\" \"HEAD:$branch\"; };f"

@@ -1,0 +1,24 @@
+# Source-only files used by the dotfiles repo itself.
+.gitignore
+README.md
+
+# Local script/test byproducts.
+__pycache__/**
+
+# Skill content is fetched from GitHub during apply by run_after_90-agent-skills.sh.
+.agents/skills/**
+
+{{- if ne .profile "bryan" }}
+# Non-technical users — exclude infrastructure-heavy and dev-only tools
+.config/k9s/**
+.config/zellij/**
+{{- end }}
+
+{{- if or (ne .profile "bryan") (ne .role "personal") }}
+# Only deploy nix-darwin on Bryan's personal machines.
+.config/nixpkgs/**
+.kopiaignore
+{{ end -}}
+
+AGENTS.md
+CLAUDE.md
