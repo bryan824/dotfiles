@@ -25,7 +25,7 @@ fi
 if (( $+commands[nvim] )); then
   alias v='nvim'
   alias vi='nvim'
-  alias vim='NVIM_APPNAME=lazyvim nvim'
+  alias vim='nvim'
 fi
 
 # Tools

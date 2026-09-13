@@ -36,7 +36,6 @@ path=(
   "$PNPM_HOME"
   "$HOME/.cargo/bin"
   "$HOME/.local/bin"
-  "$XDG_DATA_HOME/nvim/mason/bin"
   $path
 )
 

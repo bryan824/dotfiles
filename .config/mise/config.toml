@@ -132,15 +132,6 @@ exclude = ["nvim-pack-lock.json"]
 [dotfiles."~/.config/nvim/nvim-pack-lock.json"]
 mode = "copy"
 
-[dotfiles."~/.config/lazyvim"]
-mode = "symlink-each"
-exclude = ["lazyvim.json"]
-variants = [{ profile = "bryan" }, { profile = "work" }, { profile = "irene" }]
-
-[dotfiles."~/.config/lazyvim/lazyvim.json"]
-mode = "copy"
-variants = [{ profile = "bryan" }, { profile = "work" }, { profile = "irene" }]
-
 [dotfiles."~/.config/kitty"]
 mode = "symlink-each"
 exclude = ["launch.conf.tera", "current-theme.conf"]
