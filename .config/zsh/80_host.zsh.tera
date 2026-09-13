@@ -1,4 +1,8 @@
-# Host-specific settings. Rendered by mise; empty for other machine classes.
-{% if get_env(name="MISE_ENV", default="") == "bryan" -%}
-export TALOSCONFIG=~/src/ideas/homelab/terraform/output/talos-config.yaml
+# Host-specific settings. Rendered by mise from [vars] in
+# ~/.config/mise/config.local.toml, which is machine-local and never committed.
+# Every export here is opt-in: a machine that does not set the var gets nothing,
+# so this file is empty on a fresh box rather than pointing at a path that does
+# not exist.
+{% if vars.talosconfig is defined -%}
+export TALOSCONFIG={{ vars.talosconfig }}
 {%- endif %}
