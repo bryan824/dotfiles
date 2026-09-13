@@ -144,7 +144,10 @@ symlinked — otherwise every plugin update or app exit dirties this repo. Use
 ## Notes
 
 - Shell startup uses `ZDOTDIR=~/.config/zsh` from `.zshenv`.
-- `ipinfo` reads `$IPINFO_TOKEN`; set it in your shell, not in this repo.
+- `ipinfo` reads `$IPINFO_TOKEN`, supplied age-encrypted from
+  `config.bryan.toml`. Add a secret with
+  `mise set -g --age-encrypt --prompt NAME`, then move the line into the class
+  config that needs it — see AGENTS.md.
 - Agent harness deployment stays separate: `bunx github:bryan824/kirin-pi apply`.
 - Secrets never live in this repo. Machine identity goes in
   `~/.config/mise/config.local.toml`; anything else reads from the environment.

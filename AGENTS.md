@@ -150,8 +150,9 @@ git_email = "…"
 ```
 
 Reference it as `{{ vars.git_name }}` in a `.tera`. Never inline a name, email,
-token or key into a tracked file — read it from the environment instead, as
-`ipinfo` does with `$IPINFO_TOKEN` in `.config/zsh/60_aliases.zsh`.
+token or key as plaintext in a tracked file. Read it from the environment, as
+`ipinfo` does with `$IPINFO_TOKEN` in `.config/zsh/60_aliases.zsh`, and supply
+that variable age-encrypted per the rule below.
 
 Sweep before pushing:
 
@@ -166,13 +167,35 @@ grep -rInE '(secret|token|api[_-]?key|password)\s*[:=]' --exclude-dir=.git .
 local drift back here. Do not enable history for the `server` class. Fleet
 changes go out with `mise bootstrap remote`, always previewed with `--dry-run`.
 
-## Rule: secrets do not live in this repo
+## Rule: secrets are age-encrypted, never plaintext
 
-Nothing tracked here is encrypted, and nothing tracked here should need to be.
-Credentials belong in the environment or in `~/.config/mise/config.local.toml`,
-which is outside this repo.
+No credential is ever committed in the clear. There are two places for one:
 
-If encrypted state ever becomes necessary, note that mise's
-`[history.encryption]` is not a per-file `.age` scheme — it encrypts the
-history stream into a separate repository with its own origin. Decide that
-deliberately rather than reaching for it.
+**Shared across machines** — age-encrypted inline in a class config:
+
+```sh
+mise set -g --age-encrypt --prompt SOME_TOKEN
+```
+
+That writes `SOME_TOKEN = { age = "<base64>" }` into `~/.config/mise/config.toml`
+and mise decrypts it into the shell at runtime. Recipients default to
+`~/.config/mise/age.txt` plus `~/.ssh/id_ed25519`; neither is in this repo.
+Use `--prompt` so the value never enters shell history.
+
+**Machine-specific** — `~/.config/mise/config.local.toml`, which is outside
+this repo entirely. Git identity lives there.
+
+Two placement traps:
+
+- `mise set -g` always writes to `config.toml`, which **every** class loads.
+  A machine without the key then fails outright, because `age.strict` defaults
+  to true. For a secret only some classes need, generate it with `-g` and move
+  the line into `config.<class>.toml` by hand. `mise set -g -E <class>` looks
+  like it should do this; it silently no-ops.
+- `[vars]` and `[env]` are not interchangeable. `[vars]` is readable only by
+  `.tera` templates and is never exported; `[env]` is exported to the shell but
+  invisible to templates.
+
+mise's `[history.encryption]` is a different feature — it encrypts the history
+stream into a separate repository with its own origin, not per-value inline.
+Do not reach for it without deciding deliberately.
