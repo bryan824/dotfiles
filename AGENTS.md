@@ -138,6 +138,129 @@ mise bootstrap dotfiles diff    # shows rendered output, applies nothing
 Templates may execute while mise is merely *checking* state, so keep them free
 of side effects.
 
+## Rule: uv owns Python; mise only installs uv and activates the venv
+
+direnv is gone. `.config/direnv/direnvrc` carried a `layout_uv` that created
+and exported a `.venv` on `cd`; `python.uv_venv_auto = "source"` in
+`config.toml` does the same thing with no second tool and no shell hook. Do not
+reintroduce direnv for Python.
+
+Auto-activation keys off **`uv.lock`**, not `mise.toml` and not the presence of
+`.venv`. A directory holding only a venv activates nothing. That is why the
+presets run `uv init` + `uv add` rather than stopping at a config file.
+
+Never pin the interpreter in two places. The cookbook's project config lists
+`python = "3.12"` alongside `uv`, and that was wrong here the first time it
+ran: mise reported 3.13 while the venv uv built was 3.14. uv resolves the
+interpreter from `requires-python` in `pyproject.toml`, so the generated
+`mise.toml` declares `uv` and stays out of it. A repo that must pin gets a
+`.python-version`, which `idiomatic_version_file_enable_tools = ["python"]`
+makes mise honour too — note `uv init --bare` does *not* write one.
+
+Tooling splits by what imports project code:
+
+| | where | why |
+|---|---|---|
+| pytest, ty | project dev group | imports your code, conftest, plugins |
+| ruff | **both** | static binary; global copy serves the editor LSP and scratch dirs, project pin keeps `mise run lint` honest in CI |
+| uv, watchexec | global + project `[tools]` | global for daily use, declared per project so a fresh clone can run the tasks |
+
+`uv format` downloads its *own* Ruff and ignores both copies. Use `ruff format`
+or `uv run ruff format`, not `uv format`, unless you pin `--version`.
+
+## Rule: `copier.yml` belongs at the repo root, or updates are impossible
+
+This repo is a copier template as well as a dotfiles source. The layout is
+forced, not aesthetic:
+
+```
+copier.yml                  # questions + _subdirectory: ".config/copier/{{ kind }}"
+.config/copier/python/      # *.jinja files for that stack
+.config/copier/rust/
+```
+
+copier reads a template's version from the git repo its `copier.yml` sits in.
+Point it at a *subdirectory* and generation still works, but the answers file
+records no `_commit`, and every later update dies with "Cannot update because
+cannot obtain old template references". A root `copier.yml` with a templated
+`_subdirectory` is what keeps every stack in this one repo and still updatable.
+There are no version tags here, so copier falls back to HEAD and says so on
+every run — harmless.
+
+Things that cost a debugging round each:
+
+- Only files ending `.jinja` are rendered. A plain `mise.toml` copies through
+  with `{{ project_name }}` intact.
+- The answers file only exists if the template ships
+  `{{ _copier_conf.answers_file }}.jinja`. No answers file, no update.
+- `_tasks` run on **update** as well as copy — copier does not distinguish.
+  Every one must be idempotent, hence `test -f pyproject.toml || uv init …`.
+  Unguarded, `preset:update` dies with "Project is already initialized".
+- Pass the destination as `"$PWD"`, never `.`, or `_copier_conf.dst_path.name`
+  renders empty and `cargo init --name ''` fails.
+- Generated GitHub workflows must avoid `${{ }}`, or wrap it in `{% raw %}`.
+  Jinja eats it otherwise.
+- `_src_path` in a generated project is this machine's absolute path. Rewrite
+  it before publishing a project repo if `/Users/<name>` should not be public.
+
+The wrapper tasks in `.config/mise/tasks/preset/` stay thin — arg parsing via
+`#USAGE` specs, then `uvx copier`. `#MISE dir="{{cwd}}"` is load-bearing there:
+without it a global task runs in `~/.config/mise` and scaffolds the dotfiles
+repo. A new task file needs `chmod +x`, a `mise bootstrap dotfiles apply`, and
+a one-time `mise trust <path>`.
+
+Keep the generated task names identical across stacks — `sync fmt lint test fix
+check build watch`. Uniformity across ecosystems is the entire reason they wrap
+commands that are already short; a task that only aliases `uv sync` in one repo
+is not worth its line. For the same reason they belong in the generated project
+config, never as global tasks: a global `sync` is live in every directory,
+including the ones that are not projects.
+
+Anything a task shells out to goes in the generated `[tools]`, or it works only
+on the machine that wrote it. `cargo-nextest` was installed but declared in no
+config, so `mise run test` died on `No version is set for shim`. `cargo nextest
+run` also exits non-zero on an empty suite — `--no-tests=pass`, or a fresh
+project fails its own gate.
+
+Hooks are hk, not prek and not pre-commit. `hk.pkl` is Pkl, and the two
+`package://` URLs in it pin the hk version — bumping hk means editing both,
+then `mise run preset:update` per project. `hk install` writes the git shim.
+
+The reason it is not prek: hk's steps carry read/write effects, so it schedules
+them in parallel with file locks, and the same definitions run as `hk check`
+and `hk fix` from the terminal or CI rather than only as a hook. It also has
+`hk test` for step-defined tests, `hk validate`, profiles, `--format json`, and
+`hk mcp`. Pre-commit ecosystem compatibility, prek's advantage, is not wanted
+here.
+
+`hk builtins` lists the available steps. They call bare binaries — `ruff`,
+`cargo` — resolved from PATH, and git runs hooks directly rather than through
+mise, so never assume an activated `.venv` inside `hk.pkl`.
+
+The step lists live in `.config/hk/common.pkl`, which generated projects import
+over https from `raw.githubusercontent.com/bryan824/dotfiles/main/...` rather
+than copying. Editing that file and pushing changes hooks in every project at
+once, which is the entire reason it exists — do not "fix" it by inlining the
+steps back into a template. Consequences to respect:
+
+- It is live and unversioned (`main`). A broken push breaks hooks everywhere,
+  so run `hk validate` in a generated project before pushing a change to it.
+  A project that must not move pins a commit SHA in its own import URL.
+- This file is **not** deployed by `[dotfiles]`. It is consumed over https by
+  other repos, so it needs no entry — and adding one would put an unrelated
+  `~/.config/hk` on every machine.
+- raw.githubusercontent serves it with `max-age=300`, so a push takes up to
+  five minutes to reach hooks.
+- The hk version pinned in `common.pkl` must match the one a project's `hk.pkl`
+  amends. Two versions means two `Config.Step` types and Pkl rejects the
+  mapping outright.
+- Local-path imports (`file:///Users/...`) work but are machine-specific and
+  break for any other checkout. https is what makes it portable.
+
+The division of labour: hk handles per-file incremental work on staged files;
+`mise run check` stays the whole-project gate that CI runs, tests included.
+Do not make CI run both.
+
 ## Rule: no PII, no secrets in this repo
 
 Machine identity lives in `~/.config/mise/config.local.toml`, which is outside
@@ -202,7 +325,7 @@ Expect one `-> X25519` line. A `-grease` line is age's random decoy, not a
 recipient. Any `-> ssh-ed25519` line is a real second key.
 
 **Machine-specific** — `~/.config/mise/config.local.toml`, which is outside
-this repo entirely. Git identity lives there.
+this repo entirely. See the placement rule below for what belongs there.
 
 Two placement traps:
 
@@ -223,3 +346,36 @@ Two placement traps:
 mise's `[history.encryption]` is a different feature — it encrypts the history
 stream into a separate repository with its own origin, not per-value inline.
 Do not reach for it without deciding deliberately.
+
+## Rule: per-machine values belong in `config.local.toml`, not a class config
+
+Four places a value can live, and the axis that decides:
+
+| Value varies by | Goes in |
+|---|---|
+| nothing | `config.toml` |
+| machine class | `config.<class>.toml` |
+| **the individual machine** | `~/.config/mise/config.local.toml` (uncommitted) |
+| being a secret shared across machines | age-encrypted in a class config |
+
+The trap is using the class axis for a machine fact because there happens to be
+one machine in that class today. `80_host.zsh.tera` did exactly that: it gated
+a `TALOSCONFIG` path on `MISE_ENV == "bryan"`, so a second `bryan` machine
+would export a path to a checkout it does not have — and the personal directory
+layout sat in a public repo. It now reads `vars.talosconfig` and renders empty
+where that is unset.
+
+Write every such template with `{% if vars.x is defined %}`, never a bare
+reference. Opt-in means a fresh machine renders an empty section instead of
+failing, which is what makes the file safe to leave unset.
+
+Things that belong there and are easy to misfile:
+
+- git identity (`git_name`, `git_email`) — already there
+- checkout paths that differ per machine (`talosconfig`)
+- `[bootstrap.remote.hosts]` — hostnames, SSH users, key paths and tags for the
+  fleet. The README documents `mise bootstrap remote --tag vps`, and that
+  inventory is network detail that must not be committed.
+
+`[vars]` is template-only. A value the *shell* needs is `[env]`, and one that
+both need has to be written twice.
