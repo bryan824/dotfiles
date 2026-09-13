@@ -178,9 +178,28 @@ mise set -g --age-encrypt --prompt SOME_TOKEN
 ```
 
 That writes `SOME_TOKEN = { age = "<base64>" }` into `~/.config/mise/config.toml`
-and mise decrypts it into the shell at runtime. Recipients default to
-`~/.config/mise/age.txt` plus `~/.ssh/id_ed25519`; neither is in this repo.
-Use `--prompt` so the value never enters shell history.
+and mise decrypts it into the shell at runtime. Use `--prompt` so the value
+never enters shell history.
+
+**Always pass `--age-recipient` explicitly.** Left to itself mise encrypts to
+every identity it can find, which here silently added `~/.ssh/id_ed25519`
+alongside the age key — a second key that opens every secret, easy to miss
+because the ciphertext is opaque:
+
+```sh
+mise set -g --age-encrypt --prompt \
+  --age-recipient "$(age-keygen -y ~/.config/mise/age.txt)" SOME_TOKEN
+```
+
+To audit what a stored value can be opened by, decode its recipient stanzas:
+
+```sh
+grep '^SOME_TOKEN' config.toml | sed -E 's/.*age = "([^"]*)".*/\1/' \
+  | base64 -d | grep '^-> '
+```
+
+Expect one `-> X25519` line. A `-grease` line is age's random decoy, not a
+recipient. Any `-> ssh-ed25519` line is a real second key.
 
 **Machine-specific** — `~/.config/mise/config.local.toml`, which is outside
 this repo entirely. Git identity lives there.

@@ -33,7 +33,7 @@ supabase = "latest"
 talosctl = "latest"
 yazi = "latest"
 
-# ipinfo.io API token, age-encrypted. Decrypts with ~/.config/mise/age.txt
-# or ~/.ssh/id_ed25519, neither of which is in this repo.
+# ipinfo.io API token, age-encrypted to ~/.config/mise/age.txt only.
+# That key is not in this repo and is the only thing that opens this value.
 [env]
-IPINFO_TOKEN = { age = "YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBXaHFraDd5L1hiUFF3SzEveG0yMWNVdlpNdDRpRFRkR2ExSXFXUGlRdnlZCllsbmR3dzlYZUZMNXlFbmthNTlKaFR4ZmZwRFFXWm5rT3MwZmtJdHJJcWMKLT4gc3NoLWVkMjU1MTkgYWprQnBBIGVWNWtieno2aXNKWTBOQmxqVkFJSDdFYWJrRHBWQ3N0clUvZ2xxWkVFSFkKV0RKRjluVmdrSG5iY05VanBORHFoYUtMNXgxN3A2SXkwUzdLYWNqUHAwUQotPiB1fUtoeC1ncmVhc2UgcAplZWNVejNsa3ZFS1pYaVFnRW1tSENwSEhpMDlZcjY5Umhna2czMUxjNHJidXpvQlFiclAyUGQxUHpmWEV5VzhhCnczQUJ5Yjl6REVKTmYxNGs0ZlVrRXhSNmNuVllPOVlJVWljS255UTYKLS0tIEx1anArdm5mc3VDOUlpck9TMEdFelhWNDNDOGplcU4rYWc0ZHNwRE1iSU0KKv5W3odKtPToAVRRcFybdh5TCkCDBIyblScgFftIvBIQ/vQkZw/yMI/BfFyUUg" }
+IPINFO_TOKEN = { age = "YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBFVHdSbGRrNjl3TWpWbjlvejJEb01EbytyL1NSekN5TDZ5cHFGWHFiaFZvCnJlSWpTdmFxQVVsNSt2UEFZUW9rR1lmeEV5cXQyQUlDaGtZV3pzTWMrYmcKLT4geVxEIUUtZ3JlYXNlICIuK1c+Rm0gO15OXj0gU2Y4LWRwJzogXCd6CnNQdjJqSW5ZcDlHK2laOUxhSyt2UlIxOWRLdXBSalVxVEVWTHlTVnVrZ1htME1QSjA2ejUwWDJadUtrU29LbFMKdW8rR1BRM0VDcFlmcTVvM3RqKzlFZ3N1UUNUYitZdGNoc1h3WkxMb2Z3L0c3SGMySjE1OAotLS0gWjM4Wm9rMWhjc0UyekhFVGhibGRGODVwSXdoU1dDY1FzaVppNkFKRFNPYwoOLs4GLxmSyIL4ELNf7/1E4RF4OrqjT9/d/gYJDPFLnS1GpBLBOTsSJnJ4ctUk" }
