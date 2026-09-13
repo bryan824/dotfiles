@@ -1,0 +1,30 @@
+// Git hooks via hk. `hk fix` and `hk check` run these same steps from the
+// terminal or CI, so there is one definition rather than a hook copy and a CI
+// copy. Steps declare read/write effects, so hk runs the independent ones in
+// parallel and serializes anything touching the same files.
+//
+// The step list is NOT copied into this file — it is imported live from the
+// dotfiles repo, so adding a linter there reaches every project without a
+// `mise run preset:update`. Swap the URL's `main` for a commit SHA to freeze
+// this project against that.
+amends "package://github.com/jdx/hk/releases/download/v1.58.1/hk@1.58.1#/Config.pkl"
+import "https://raw.githubusercontent.com/bryan824/dotfiles/main/.config/hk/common.pkl" as Shared
+
+// Shared.python = hygiene + ruff. Add project-only steps by amending:
+//   local linters = (Shared.python) { ["mypy"] { glob = "**/*.py"; check = "..." } }
+local linters = Shared.python
+
+hooks {
+    ["pre-commit"] {
+        fix = true
+        stash = "git"
+        steps = linters
+    }
+    ["fix"] {
+        fix = true
+        steps = linters
+    }
+    ["check"] {
+        steps = linters
+    }
+}

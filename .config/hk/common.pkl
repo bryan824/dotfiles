@@ -1,0 +1,46 @@
+/// Shared hk steps for every project generated from this repo.
+///
+/// Projects import this over https rather than copying it, so editing this file
+/// and pushing changes the hooks in every repo at once — no `copier update`
+/// run, no per-repo edit. That is the one thing the copier template cannot do.
+///
+/// Consumed as:
+///
+///   import "https://raw.githubusercontent.com/bryan824/dotfiles/main/.config/hk/common.pkl" as Shared
+///   local linters = Shared.python
+///
+/// Two consequences of it being live:
+///
+///   - A broken commit here breaks hooks everywhere. `hk validate` in a
+///     generated project before pushing a change to this file.
+///   - The URL pins `main`, not a tag. Pin a commit SHA in a project's hk.pkl
+///     instead if that project must not move when this file does.
+///
+/// The hk version below must match the one a project's hk.pkl amends, or the
+/// Step types come from two different packages and Pkl rejects the mapping.
+module common
+
+import "package://github.com/jdx/hk/releases/download/v1.58.1/hk@1.58.1#/Config.pkl"
+import "package://github.com/jdx/hk/releases/download/v1.58.1/hk@1.58.1#/Builtins.pkl"
+
+/// Language-agnostic hygiene. Every project gets these.
+base: Mapping<String, Config.Step> = new {
+  ["trailing-whitespace"] = Builtins.trailing_whitespace
+  ["newlines"] = Builtins.newlines
+  ["large-files"] = Builtins.check_added_large_files
+}
+
+/// base + ruff. These call bare `ruff` from PATH: the project's pinned copy
+/// when the .venv is active, otherwise a global one. Git runs hooks directly
+/// rather than through mise, so never assume the venv is active.
+python: Mapping<String, Config.Step> = (base) {
+  ["ruff"] = Builtins.ruff
+  ["ruff-format"] = Builtins.ruff_format
+}
+
+/// base + cargo. Both key off Cargo.toml as the workspace indicator, so a
+/// workspace runs one cargo invocation per member rather than one per file.
+rust: Mapping<String, Config.Step> = (base) {
+  ["cargo-fmt"] = Builtins.cargo_fmt
+  ["cargo-clippy"] = Builtins.cargo_clippy
+}

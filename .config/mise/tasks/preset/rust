@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+#MISE description="Scaffold a Rust + cargo project from the copier template"
+#MISE dir="{{cwd}}"
+#USAGE flag "--ci" help="Add a GitHub Actions workflow running `mise run check`"
+#USAGE flag "--hooks" help="Add hk git hooks (hk.pkl), also runnable as `hk check` / `hk fix`"
+#USAGE flag "--name <name>" help="Crate name (default: directory name)"
+#USAGE flag "--ask" help="Prompt for every template question instead of defaults"
+#
+# Thin wrapper over the copier template at the root of ~/.dotfiles. See the
+# python preset for the reasoning; the template itself is .config/copier/rust.
+#
+# Re-apply later template changes from inside a generated project:
+#   uvx copier update --trust
+set -euo pipefail
+
+args=(--trust --data "kind=rust")
+[[ -n ${usage_ask:-} ]] || args+=(--defaults)
+[[ -n ${usage_ci:-} ]] && args+=(--data "ci=true")
+[[ -n ${usage_hooks:-} ]] && args+=(--data "hooks=true")
+[[ -n ${usage_name:-} ]] && args+=(--data "project_name=$usage_name")
+
+uvx copier copy "${args[@]}" "$HOME/.dotfiles" "$PWD"   # $PWD, not . — copier reads the project name from the destination path

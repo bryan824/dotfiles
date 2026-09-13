@@ -1,0 +1,17 @@
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: jdx/mise-action@v3
+      # mise.toml pins nextest; the toolchain comes from rust-toolchain.toml
+      # if the project has one, else the runner's default.
+      - run: mise run sync
+      - run: mise run check
