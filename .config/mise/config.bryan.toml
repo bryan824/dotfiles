@@ -33,6 +33,23 @@ supabase = "latest"
 talosctl = "latest"
 yazi = "latest"
 
+# ---------------------------------------------------------------------------
+# LaunchAgents. Written to ~/Library/LaunchAgents/dev.mise.<name>.plist and
+# loaded only by an explicit `mise bootstrap macos launchd-agents apply`.
+#
+# The agent inherits launchd's environment, not an interactive shell's, so the
+# command activates mise by absolute path before calling anything from it.
+# ---------------------------------------------------------------------------
+
+# Nightly kopia snapshot of $HOME, then an index-vs-storage blob check.
+# The work lives in the script so the pipeline inside it can run under
+# pipefail; see .local/bin/kopia-nightly.sh.
+[bootstrap.macos.launchd.agents.kopia-backup]
+program = "~/.local/bin/kopia-nightly.sh"
+start_calendar_interval = { hour = 2, minute = 0 }
+stdout_path = "~/Library/Logs/kopia-launchagent.out"
+stderr_path = "~/Library/Logs/kopia-launchagent.err"
+
 # ipinfo.io API token, age-encrypted to ~/.config/mise/age.txt only.
 # That key is not in this repo and is the only thing that opens this value.
 [env]
