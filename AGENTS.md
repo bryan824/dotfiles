@@ -209,8 +209,13 @@ Two placement traps:
 - `mise set -g` always writes to `config.toml`, which **every** class loads.
   A machine without the key then fails outright, because `age.strict` defaults
   to true. For a secret only some classes need, generate it with `-g` and move
-  the line into `config.<class>.toml` by hand. `mise set -g -E <class>` looks
-  like it should do this; it silently no-ops.
+  the line into `config.<class>.toml` by hand.
+
+  Do **not** reach for `mise set -g -E <class>`. It does not write the global
+  overlay; it drops a `mise.<class>.toml` *project* config in the current
+  directory. Run from `~`, that file then loads for that class on every
+  command, silently shadowing the real config. Check for strays with
+  `mise config ls`, which lists every file actually loaded.
 - `[vars]` and `[env]` are not interchangeable. `[vars]` is readable only by
   `.tera` templates and is never exported; `[env]` is exported to the shell but
   invisible to templates.
