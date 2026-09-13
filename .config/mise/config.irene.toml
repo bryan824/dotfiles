@@ -14,4 +14,4 @@ watchexec = "latest"
 # backup + assistant
 "github:kopia/kopia" = "latest"
 rclone = "latest"
-gemini-cli = "latest"
+antigravity-cli = "latest"
