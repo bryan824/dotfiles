@@ -1,0 +1,34 @@
+#: Bryan's personal mac. MISE_ENV=bryan
+#: Layers on top of config.toml.
+
+[tools]
+# desktop
+bun = "latest"
+node = "latest"
+herdr = "latest"
+opencode = "latest"
+television = "latest"
+rtk = "latest"
+watchexec = "latest"
+
+# kubernetes / data
+duckdb = "latest"
+helm = "latest"
+k9s = "latest"
+kubectl = "latest"
+kustomize = "latest"
+prek = "latest"
+tokei = "latest"
+
+# personal-only
+"npm:agent-browser" = "latest"
+"npm:@earendil-works/pi-coding-agent" = "latest"
+claude-code = "latest"
+antigravity-cli = "latest"
+cilium-cli = "latest"
+"github:kopia/kopia" = "latest"
+rclone = "latest"
+stylua = "latest"
+supabase = "latest"
+talosctl = "latest"
+yazi = "latest"

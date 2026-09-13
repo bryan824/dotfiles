@@ -1,0 +1,209 @@
+# Kopia ignore rules for generated dependencies/build outputs.
+# Bare names match files or directories anywhere under the snapshot root.
+
+# ------------------------------------------------------------
+# Big personal folders excluded intentionally
+# Remove any of these if you actually want Kopia to back them up.
+# ------------------------------------------------------------
+/Music
+/Pictures
+/Movies
+/.Trash
+/Desktop
+/Documents
+# Keep ~/Library generally, but exclude noisy/problematic parts
+
+/Library/Caches
+/Library/Logs
+/Library/Saved Application State
+/Library/Developer/Xcode/DerivedData
+/Library/Metadata/CoreSpotlight
+/Library/Metadata/com.apple.IntelligentSuggestions
+/Library/HTTPStorages
+/Library/WebKit
+
+# macOS privacy-protected/app-state paths that commonly fail without Full Disk Access
+/Library/Accounts
+/Library/AppleMediaServices
+/Library/Assistant/SiriVocabulary
+/Library/Autosave Information
+/Library/Biome
+/Library/ContainerManager
+/Library/Cookies
+/Library/CoreFollowUp
+/Library/Daemon Containers
+/Library/DoNotDisturb
+/Library/DuetExpertCenter
+/Library/HomeKit
+/Library/IdentityServices
+/Library/IntelligencePlatform
+/Library/Mail
+/Library/Messages
+/Library/PersonalizationPortrait
+/Library/Safari
+/Library/Sharing
+/Library/Shortcuts
+/Library/StatusKit
+/Library/Suggestions
+/Library/Trial
+/Library/Weather
+/Library/com.apple.aiml.instrumentation
+/Library/Application Support/AddressBook
+/Library/Application Support/CallHistoryDB
+/Library/Application Support/CallHistoryTransactions
+/Library/Application Support/CloudDocs
+/Library/Application Support/com.apple.TCC
+/Library/Application Support/DifferentialPrivacy
+/Library/Application Support/FaceTime
+/Library/Application Support/FileProvider
+/Library/Application Support/MobileSync
+/Library/Application Support/com.apple.avfoundation/Frecents
+/Library/Preferences/com.apple.AddressBook.plist
+/Library/Preferences/com.apple.MobileSMS.CKDNDList.plist
+/Library/Preferences/com.apple.MobileSMS.plist
+/Library/Preferences/com.apple.Music.plist
+/Library/Preferences/com.apple.TV.plist
+/Library/Preferences/com.apple.homed.notbackedup.plist
+/Library/Preferences/com.apple.homed.plist
+/Library/Preferences/com.apple.madrid.plist
+/Library/Preferences/com.apple.mail-shared.plist
+/Library/Preferences/com.apple.messages.pinning.plist
+/Library/Preferences/ByHost/com.apple.Music.*.plist
+/Library/Preferences/ByHost/com.apple.TV.*.plist
+
+/Library/Application Support/CrashReporter
+/Library/Application Support/com.apple.sharedfilelist
+/Library/Application Support/Knowledge
+/Library/Application Support/Claude/vm_bundles
+/Library/Application Support/*/*/Service Worker/CacheStorage
+/Library/Containers/com.apple*
+/Library/Containers/*/.com.apple.containermanagerd.metadata.plist
+/Library/Containers/*/Data/Library/Caches
+/Library/Developer/Xcode
+/Library/Group Containers/group.com.apple.*
+/Library/Group Containers/com.apple.*
+/Library/Group Containers/*.orbstack
+/Library/Group Containers/*/Library/Caches
+/Library/Group Containers/*/Library/Logs
+/Library/Group Containers/*/Library/Saved Application State
+
+# Cloud placeholders; exclude unless you intentionally want to back up cloud-drive folders
+/Library/CloudStorage
+/Library/Mobile Documents
+
+
+# ------------------------------------------------------------
+# macOS noisy files
+# ------------------------------------------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+.fseventsd
+.TemporaryItems
+
+# ------------------------------------------------------------
+# Node / JavaScript dependencies and build outputs
+# ------------------------------------------------------------
+node_modules
+.pnpm-store
+.yarn/cache
+.next
+.nuxt
+.svelte-kit
+.turbo
+dist
+build
+coverage
+
+# ------------------------------------------------------------
+# Python virtual environments and caches
+# ------------------------------------------------------------
+.venv
+venv
+__pycache__
+*.py[cod]
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.tox
+
+# ------------------------------------------------------------
+# Rust / Go / Swift / general build outputs
+# ------------------------------------------------------------
+target
+.build
+
+# ------------------------------------------------------------
+# Application-specific caches
+# ------------------------------------------------------------
+/.omlx/cache
+/.omlx/models
+
+# ------------------------------------------------------------
+# Reinstallable toolchains, stores, and downloaded app payloads
+# ------------------------------------------------------------
+/.local/share/mise
+/.local/share/pnpm
+/go/pkg
+/.rustup/toolchains
+/.vscode/extensions
+/.agent-browser/browsers
+/.codex/plugins
+/.pi/agent/npm
+/.pi/agent/tmp
+/.cloakbrowser
+/.duckdb
+/Library/Application Support/BaoCut
+/Library/Application Support/com.apple.wallpaper
+/Library/Application Support/Code/CachedData
+/Library/Application Support/Code/User/workspaceStorage
+
+# ------------------------------------------------------------
+# Package-manager caches
+# ------------------------------------------------------------
+.cache
+.npm
+.gradle
+.m2/repository
+.cargo/registry
+.cargo/git
+.rustup/downloads
+.rustup/tmp
+
+# ------------------------------------------------------------
+# Logs and temporary/debug artifacts
+# ------------------------------------------------------------
+*.log
+.repro
+.tests
+tt.*
+foo.*
+.claude.json.tmp.*
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# ------------------------------------------------------------
+# Editor/generated files
+# ------------------------------------------------------------
+.vscode-server
+.idea/system
+doc/tags
+
+# ------------------------------------------------------------
+# VM / container large local data
+# ------------------------------------------------------------
+Docker.raw
+OrbStack
+Docker.qcow2
+VirtualBox VMs
+Parallels
+*.pvm
+*.vdi
+*.vmdk
+*.qcow2

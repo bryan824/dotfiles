@@ -1,0 +1,11 @@
+# Runtime artifacts that tools create inside symlinked config directories.
+# The live path IS this repo, so anything a daemon drops lands here.
+*.sock
+.DS_Store
+
+# The global ignore (~/.config/git/ignore) excludes .claude/ so agent scratch
+# never lands in project repos. Here it is a real dotfile source, so re-include
+# it. A parent directory must be un-ignored before a file inside it can be.
+!.claude/
+.claude/*
+!.claude/settings.json.tera

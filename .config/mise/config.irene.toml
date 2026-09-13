@@ -1,0 +1,17 @@
+#: Irene's personal mac. MISE_ENV=irene
+#: Layers on top of config.toml.
+
+[tools]
+# desktop
+bun = "latest"
+node = "latest"
+herdr = "latest"
+opencode = "latest"
+television = "latest"
+rtk = "latest"
+watchexec = "latest"
+
+# backup + assistant
+"github:kopia/kopia" = "latest"
+rclone = "latest"
+gemini-cli = "latest"

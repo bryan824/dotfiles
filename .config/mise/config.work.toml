@@ -1,0 +1,21 @@
+#: Bryan's work mac. MISE_ENV=work
+#: Layers on top of config.toml.
+
+[tools]
+# desktop
+bun = "latest"
+node = "latest"
+herdr = "latest"
+opencode = "latest"
+television = "latest"
+rtk = "latest"
+watchexec = "latest"
+
+# kubernetes / data
+duckdb = "latest"
+helm = "latest"
+k9s = "latest"
+kubectl = "latest"
+kustomize = "latest"
+prek = "latest"
+tokei = "latest"

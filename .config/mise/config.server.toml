@@ -1,0 +1,12 @@
+#: VPS / VM. MISE_ENV=server
+#: Layers on top of config.toml. Base is already the server tool set, so this
+#: file exists for server-exclusive settings rather than extra tools.
+
+[settings]
+# A fleet box must never publish its local drift back to the dotfiles repo.
+# Bootstrap is one-way: push from a workstation with `mise bootstrap remote`.
+history.enabled = false
+
+[tools]
+# Nothing beyond the base set yet. Server-exclusive tools (systemd helpers,
+# node_exporter, and so on) go here as they come up.

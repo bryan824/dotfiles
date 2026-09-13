@@ -1,0 +1,4 @@
+# Host-specific settings. Rendered by mise; empty for other machine classes.
+{% if get_env(name="MISE_ENV", default="") == "bryan" -%}
+export TALOSCONFIG=~/src/ideas/homelab/terraform/output/talos-config.yaml
+{%- endif %}
