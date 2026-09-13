@@ -286,10 +286,8 @@ symlinked — otherwise every plugin update or app exit dirties this repo. Use
   `config.bryan.toml`. Add a secret with
   `mise set -g --age-encrypt --prompt NAME`, then move the line into the class
   config that needs it — see AGENTS.md.
-- One nvim config: `.config/nvim`, plugins via `vim.pack`, no Mason. `v`, `vi`
-  and `vim` all point at it. The LazyVim second config (`NVIM_APPNAME=lazyvim`)
-  and the leftover `~/.local/share/nvim/mason` are both gone, and the Mason bin
-  directory is off `PATH`.
+- One nvim config: `.config/nvim`, plugins via `vim.pack`. `v`, `vi` and `vim`
+  all point at it.
 - Agent harness deployment stays separate: `bunx github:bryan824/kirin-pi apply`.
 - Secrets never live in this repo. Machine identity goes in
   `~/.config/mise/config.local.toml`; anything else reads from the environment.
