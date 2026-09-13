@@ -27,6 +27,17 @@ claude-code = "latest"
 antigravity-cli = "latest"
 cilium-cli = "latest"
 "github:kopia/kopia" = "latest"
+# GnuPG is not in the mise registry and never will be: it is a source tarball
+# against its own library chain, not a release binary any of the download
+# backends can fetch. conda-forge ships a prebuilt one, hence the conda backend
+# rather than a build from source.
+#
+# pinentry is a separate conda package -- conda:gnupg ships none, and without
+# it every passphrase-protected secret-key operation dies with "No pinentry".
+# gpg-agent resolves it by absolute path, not $PATH, so it needs the
+# pinentry-program line in ~/.gnupg/gpg-agent.conf to find this one.
+"conda:gnupg" = "latest"
+"conda:pinentry" = "latest"
 rclone = "latest"
 stylua = "latest"
 supabase = "latest"
