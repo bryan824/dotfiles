@@ -83,7 +83,6 @@ up() {
     'mise upgrade'
     'zimfw upgrade'
     'zimfw update'
-    'uv self update'
     'uv tool upgrade --all'
     'gcloud components update --quiet'
   )

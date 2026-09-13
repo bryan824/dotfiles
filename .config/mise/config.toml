@@ -12,6 +12,12 @@ experimental = true
 minimum_release_age = "0s"
 dotfiles.default_mode = "symlink-each"
 
+# Python is uv's job, not mise's: uv installs the interpreter, owns the lockfile
+# and creates .venv. mise only activates that venv on cd, which is the whole of
+# what direnv's layout_uv used to do. Requires a uv.lock for detection.
+python.uv_venv_auto = "source"
+idiomatic_version_file_enable_tools = ["python"]
+
 [settings.npm]
 bun = true
 package_manager = "bun"
@@ -44,7 +50,6 @@ package_manager = "bun"
 # --- every machine -----------------------------------------------------------
 "~/.zshenv" = { mode = "symlink" }
 "~/.config/ripgrep" = {}
-"~/.config/direnv" = {}
 "~/.config/rustfmt" = {}
 "~/.config/git/ignore" = { mode = "symlink" }
 
@@ -172,6 +177,10 @@ fzf = "latest"
 lazygit = "latest"
 neovim = "latest"
 ripgrep = "latest"
+# Static binary, never imports project code, so one copy serves the editor LSP
+# and any directory. Projects whose CI gates on lint pin their own via uv.
+ruff = "latest"
 starship = "latest"
 usage = "latest"
+uv = "latest"
 zoxide = "latest"

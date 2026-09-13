@@ -5,7 +5,6 @@
 # starship is intentionally not deferred: it must render before the first prompt.
 (($+commands[kopia]   )) && zsh-defer _evalcache kopia --completion-script-zsh
 (($+commands[atuin]   )) && zsh-defer _evalcache atuin init zsh
-(($+commands[direnv]  )) && zsh-defer _evalcache direnv hook zsh
 (($+commands[zoxide]  )) && zsh-defer _evalcache zoxide init zsh
 (($+commands[starship])) && _evalcache starship init zsh
 (($+commands[tv]      )) && zsh-defer _evalcache tv init zsh
