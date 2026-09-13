@@ -43,18 +43,16 @@ package_manager = "bun"
 
 # --- every machine -----------------------------------------------------------
 "~/.zshenv" = { mode = "symlink" }
-"~/.rclone_excludes.txt" = { mode = "symlink" }
 "~/.config/ripgrep" = {}
 "~/.config/direnv" = {}
 "~/.config/rustfmt" = {}
 "~/.config/git/ignore" = { mode = "symlink" }
 
-# mise's own config, so this repo manages the file you are reading.
-"~/.config/mise/config.toml" = { mode = "symlink" }
-"~/.config/mise/config.bryan.toml" = { mode = "symlink" }
-"~/.config/mise/config.work.toml" = { mode = "symlink" }
-"~/.config/mise/config.irene.toml" = { mode = "symlink" }
-"~/.config/mise/config.server.toml" = { mode = "symlink" }
+# mise's own config, so this repo manages the file you are reading. One entry
+# covers every config.<class>.toml, and a new class needs no table change.
+# symlink-each leaves the unmanaged neighbours here alone: age.txt,
+# config.local.toml and miserc.toml are machine-local and never tracked.
+"~/.config/mise" = {}
 
 # --- desktops only (bryan / work / irene) ------------------------------------
 "~/.config/ghostty" = { mode = "symlink-each", variants = [{ profile = "bryan" }, { profile = "work" }, { profile = "irene" }] }
@@ -66,7 +64,11 @@ package_manager = "bun"
 # --- bryan + work only -------------------------------------------------------
 "~/.config/zellij" = { mode = "symlink-each", variants = [{ profile = "bryan" }, { profile = "work" }] }
 
-# --- machines that run kopia backups (bryan / irene) --------------------------
+# --- machines that run rclone / kopia backups (bryan / irene) -----------------
+# Both files follow the tools they configure. A config whose audience drifts
+# from its tool's is the bug that shipped twice here.
+"~/.rclone_excludes.txt" = { mode = "symlink", variants = [{ profile = "bryan" }, { profile = "irene" }] }
+
 # Kopia backup exclude list. Holds only exclude paths and no secrets.
 # Deployed to the classes that install kopia.
 "~/.kopiaignore" = { mode = "symlink", variants = [{ profile = "bryan" }, { profile = "irene" }] }
