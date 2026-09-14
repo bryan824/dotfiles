@@ -75,22 +75,9 @@ diffd() { diff -qr "$1" "$2" | grep -v -e 'DS_STORE' -e 'Thumbs' | sort; }
 # ---------------------------------------------------------------------------
 
 # Run every self-update/upgrade in one shot:  up
-# Steps whose tool is missing are skipped. Tools installed *by* mise (bun,
-# rustup, node…) are deliberately absent — `mise upgrade` already owns them.
-up() {
-  local -a steps=(
-    'mise self-update -y'
-    'mise upgrade'
-    'zimfw upgrade'
-    'zimfw update'
-    'uv tool upgrade --all'
-    'gcloud components update --quiet'
-  )
-  local step tool
-  for step in $steps; do
-    tool=${step%% *}
-    (( $+commands[$tool] || $+functions[$tool] )) || continue
-    print::info "$step"
-    ${(z)step} || print::error "$step failed"
-  done
-}
+#
+# The steps live in the script, not here, because bryan's dev.mise.self-update
+# LaunchAgent runs the same thing weekly and two copies would drift. The script
+# sets up its own mise/zim/gcloud resolution, so it is safe to run from a bare
+# launchd environment as well as from here.
+up() { "$HOME/.local/bin/up.sh" }

@@ -53,6 +53,11 @@ package_manager = "bun"
 "~/.config/rustfmt" = {}
 "~/.config/git/ignore" = { mode = "symlink" }
 
+# Body of the `up` function, and of bryan's dev.mise.self-update LaunchAgent.
+# No variants deliberately: the agent is macOS-only, but `up` is how every
+# class including server updates itself by hand.
+"~/.local/bin/up.sh" = { mode = "symlink" }
+
 # mise's own config, so this repo manages the file you are reading. One entry
 # covers every config.<class>.toml, and a new class needs no table change.
 # symlink-each leaves the unmanaged neighbours here alone: age.txt,

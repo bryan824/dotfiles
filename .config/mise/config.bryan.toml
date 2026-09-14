@@ -61,6 +61,20 @@ start_calendar_interval = { hour = 2, minute = 0 }
 stdout_path = "~/Library/Logs/kopia-launchagent.out"
 stderr_path = "~/Library/Logs/kopia-launchagent.err"
 
+# Weekly self-update of everything not owned by a package manager already.
+# Same script the interactive `up` runs; see .local/bin/up.sh.
+#
+# Weekly, not nightly, and Sunday 04:00 on purpose. Unlike the kopia agent
+# above this one *writes* to every toolchain on PATH, so a run that lands
+# mid-week rebuilds the tools under whatever is being worked on. A failure here
+# is also not urgent -- nothing is lost, the next run retries -- so it gets no
+# notification, only the log below.
+[bootstrap.macos.launchd.agents.self-update]
+program = "~/.local/bin/up.sh"
+start_calendar_interval = { weekday = 0, hour = 4, minute = 0 }
+stdout_path = "~/Library/Logs/up-launchagent.out"
+stderr_path = "~/Library/Logs/up-launchagent.err"
+
 # ipinfo.io API token, age-encrypted to ~/.config/mise/age.txt only.
 # That key is not in this repo and is the only thing that opens this value.
 [env]
