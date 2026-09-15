@@ -8,12 +8,17 @@
 # prints a #compdef script is handled by `mise run shell:completions`, which
 # writes it into $ZDOTDIR/completions for zsh to autoload on first use — no
 # startup cost at all.
-(($+commands[kopia]   )) && zsh-defer _evalcache kopia --completion-script-zsh
+# kopia and k9s used to be here too. Both emit a plain #compdef script, so they
+# moved to `mise run shell:completions` — an fpath file loads on first use
+# instead of being eval'd in every shell.
+#
+# atuin is declared in no config.<class>.toml and is not installed on any class
+# this repo defines; the line is kept because it costs nothing when absent and
+# atuin is the intended owner of ^R wherever it does get installed.
 (($+commands[atuin]   )) && zsh-defer _evalcache atuin init zsh
 (($+commands[zoxide]  )) && zsh-defer _evalcache zoxide init zsh
 (($+commands[starship])) && _evalcache starship init zsh
 (($+commands[tv]      )) && zsh-defer _evalcache tv init zsh
-(($+commands[k9s]     )) && zsh-defer _evalcache k9s completion zsh
 
 # fzf — completion half only.
 #

@@ -26,10 +26,13 @@ command mkdir -p $dest
 local -A generators=(
   bat       '--completion zsh'
   bun       'completions zsh'
+  cilium    'completion zsh'
   fd        '--gen-completions zsh'
   gh        'completion -s zsh'
   helm      'completion zsh'
   herdr     'completion zsh'
+  k9s       'completion zsh'
+  kopia     '--completion-script-zsh'
   kubectl   'completion zsh'
   kustomize 'completion zsh'
   lazygit   'completion zsh'
