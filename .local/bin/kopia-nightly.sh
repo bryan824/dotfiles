@@ -1,6 +1,6 @@
 #!/bin/zsh
 # Nightly kopia backup. Run by the dev.mise.kopia-backup LaunchAgent, which is
-# declared in .config/mise/config.bryan.toml.
+# declared in .config/mise/config.{bryan,irene}.toml.
 #
 # launchd gives this no interactive shell and no activated mise, so mise is
 # activated here by absolute path. It also gives no pipefail, which is why this

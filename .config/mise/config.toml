@@ -85,8 +85,8 @@ package_manager = "bun"
 "~/.kopiaignore" = { mode = "symlink", variants = [{ profile = "bryan" }, { profile = "irene" }] }
 
 # Driver for the dev.mise.kopia-backup LaunchAgent, so it follows the agent
-# rather than the tool: only bryan declares that agent.
-"~/.local/bin/kopia-nightly.sh" = { mode = "symlink", variants = [{ profile = "bryan" }] }
+# rather than the tool: bryan and irene declare that agent.
+"~/.local/bin/kopia-nightly.sh" = { mode = "symlink", variants = [{ profile = "bryan" }, { profile = "irene" }] }
 
 # ---------------------------------------------------------------------------
 # Templates (.tera)
