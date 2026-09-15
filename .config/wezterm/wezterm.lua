@@ -234,6 +234,18 @@ local config = {
   },
 }
 
+-- Start herdr instead of a bare shell, as kitty does via launch.conf.
+-- A GUI app inherits no mise-activated PATH, so this goes through mise's shim,
+-- which also survives a tool whose install layout is nested. Guarded: without
+-- herdr installed an unconditional default_prog leaves wezterm unable to open
+-- any window at all.
+local herdr = (os.getenv "HOME" or "") .. "/.local/share/mise/shims/herdr"
+local f = io.open(herdr)
+if f then
+  f:close()
+  config.default_prog = { herdr }
+end
+
 -- for i = 1, 8 do
 --   -- CTRL+ALT + number to activate that tab
 --   table.insert(config.keys, {
