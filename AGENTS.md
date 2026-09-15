@@ -38,6 +38,24 @@ MISE_ENV=server mise bootstrap dotfiles status
 
 Check every class you might have affected, not just this machine's.
 
+**A template must read the class from `vars.class`, never from the
+environment.** mise resolves the class from `miserc.toml`, so it loads
+`config.<class>.toml` even when `MISE_ENV` is absent from the process
+environment — but Tera's `get_env` reads that environment and gets nothing:
+
+```tera
+{%- if vars.class is defined and vars.class in ["bryan", "work"] %}   {# right #}
+{%- if get_env(name="MISE_ENV", default="") in ["bryan", "work"] %}   {# wrong #}
+```
+
+The wrong form renders *as if unclassed* whenever apply runs from anything that
+does not export `MISE_ENV`: a LaunchAgent, a cron job, a script, a coding
+agent's non-interactive shell. It fails silently — the entry applies cleanly and
+the section is simply missing. `starship.toml.tera` lost its `$gcloud` segment
+this way, and `status` (run from a shell that does export the variable)
+disagreed with `apply` for as long as it lasted. Each `config.<class>.toml`
+declares `[vars] class`.
+
 ## Rule: a `[dotfiles]` entry needs an operation, or it is silently dropped
 
 An entry carrying only `variants` is ignored with a warning that is easy to
@@ -260,6 +278,36 @@ steps back into a template. Consequences to respect:
 The division of labour: hk handles per-file incremental work on staged files;
 `mise run check` stays the whole-project gate that CI runs, tests included.
 Do not make CI run both.
+
+## Rule: completions are generated per machine, never committed
+
+Most CLIs here ship no `_<tool>` file anywhere zsh looks, so tab completion for
+them silently does nothing — there is no error, just a beep. `mise run
+shell:completions` fills `$ZDOTDIR/completions` from two sources: tools that
+print a completion script on demand (`mise completion zsh`, `uv
+generate-shell-completion zsh`, …) and tools whose release archive ships one
+that mise unpacks but never links (bottom, zoxide, yazi).
+
+That directory is machine-local: it lives inside `~/.config/zsh`, which is a
+real directory under `symlink-each`, so generated files never reach this repo.
+`up.sh` regenerates it after every upgrade, since a generated `#compdef` file
+describes the flags of the version that produced it.
+
+Prefer this over an `_evalcache <tool> completion zsh` line in
+`40_tools.zsh`. An fpath file is autoloaded on the first tab press for that
+command and costs nothing at startup; a sourced init runs in every shell.
+`40_tools.zsh` is only for integrations that must be *sourced* — a prompt hook,
+a widget, a keybinding.
+
+Two things that bite:
+
+- `_evalcache` keys its cache on the command string, not on the binary, so a
+  newer tool keeps serving the old init forever. `up.sh` clears
+  `$ZSH_EVALCACHE_DIR` after upgrading for exactly that reason; the directory
+  had a cached `direnv` init long after direnv left the config.
+- `fzf --zsh` emits key-bindings *and* completion in one stream, and the
+  key-bindings half takes `^R`, which atuin owns. Only the completion section
+  is sourced; see `40_tools.zsh`.
 
 ## Rule: no PII, no secrets in this repo
 
