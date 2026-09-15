@@ -1,0 +1,366 @@
+---
+data_dir: /config/user-data/etc/vector/data
+
+# api:
+#   enabled: true
+#   address: 0.0.0.0:8686
+
+enrichment_tables:
+  geoip_table:
+    type: geoip
+    path: /config/user-data/etc/vector/GeoLite2-City.mmdb
+  lan_device:
+    type: file
+    file:
+      path: /config/user-data/etc/vector/lan_device.csv
+      encoding:
+        type: csv
+    schema:
+      ip: string
+      device: string
+
+sources:
+  journald_source:
+    type: journald
+    include_matches:
+      SYSLOG_IDENTIFIER:
+        - kernel
+        - dae
+        - smartdns
+        - sshguard
+        - sshd
+        - blocky
+
+transforms:
+  journald_route:
+    type: route
+    inputs:
+      - journald_source
+    reroute_unmatched: false
+    route:
+      firewall: '.SYSLOG_IDENTIFIER == "kernel" && match(string(.message) ?? "",
+        r''^(?:\[[^\]]+\]\s*)?\[[^\]]+\].*(?:IN=|OUT=)'')'
+      sshd: '.SYSLOG_IDENTIFIER == "sshd"'
+      sshguard: '.SYSLOG_IDENTIFIER == "sshguard"'
+      dae: '.SYSLOG_IDENTIFIER == "dae"'
+      smartdns: '.SYSLOG_IDENTIFIER == "smartdns"'
+      blocky: '.SYSLOG_IDENTIFIER == "blocky"'
+
+  blocky_remap:
+    type: remap
+    inputs:
+      - journald_route.blocky
+    source: |
+      .service = "blocky"
+      .instance = string(.host) ?? "vyos"
+      .app = "blocky-internal"
+      .event_type = "internal"
+      .schema_version = 1
+
+      raw = string(.message) ?? ""
+      .raw_message = raw
+
+      ._blocky = parse_json(raw) ?? {}
+      .blocky_level = string(._blocky.level) ?? ""
+      .blocky_prefix = string(._blocky.prefix) ?? ""
+      .blocky_msg = string(._blocky.msg) ?? ""
+
+      ts = string(._blocky.time) ?? ""
+      if ts != "" {
+        .timestamp = parse_timestamp(ts, format: "%+") ?? .timestamp
+      }
+
+      if .blocky_prefix == "queryLog" && .blocky_msg == "query resolved" {
+        .app = "blocky-dns-query"
+        .event_type = "dns_query"
+
+        .client_ip = string(._blocky.client_ip) ?? ""
+        .client_names = string(._blocky.client_names) ?? ""
+        .client = if .client_names == "" || .client_names == "none" { .client_ip } else { .client_names }
+
+        .qname = string(._blocky.question_name) ?? ""
+        .qtype = string(._blocky.question_type) ?? ""
+        .response_code = string(._blocky.response_code) ?? ""
+        .response_type = string(._blocky.response_type) ?? ""
+        .response_reason = string(._blocky.response_reason) ?? ""
+        .answer = string(._blocky.answer) ?? ""
+        .duration_ms = to_int(._blocky.duration_ms) ?? 0
+        .is_blocked = .response_type == "BLOCKED" || contains(.response_reason, "BLOCKED")
+
+        ._answer = parse_regex(.answer, r'^(?P<answer_type>[A-Z0-9]+)\s+\((?P<answer_value>[^)]*)\)$') ?? {}
+        if exists(._answer.answer_type) {
+          .answer_type = ._answer.answer_type
+          .answer_value = ._answer.answer_value
+        }
+
+        ._reason = parse_regex(.response_reason, r'^(?P<reason>[^\s]+)(?:\s+\((?P<resolver>[^)]+)\))?$') ?? {}
+        if exists(._reason.reason) { .reason = ._reason.reason }
+        if exists(._reason.resolver) { .resolver = ._reason.resolver }
+
+        .message = .client + " " + .qtype + " " + .qname + " -> " + .response_type + " " + .answer
+      } else {
+        .message = .blocky_msg
+      }
+
+      del(._answer)
+      del(._reason)
+      del(._blocky)
+
+  blocky_dns_only:
+    type: filter
+    inputs:
+      - blocky_remap
+    condition: '.event_type == "dns_query"'
+
+  dae_remap:
+    type: remap
+    inputs:
+      - journald_route.dae
+    source: |
+      .service = "dae"
+      .instance = string(.host) ?? "vyos"
+      .app = "dae-internal"
+      .event_type = "internal"
+      .pipeline = "dae_remap"
+      .schema_version = 1
+
+      raw = string(.message) ?? ""
+      .raw_message = raw
+
+      ._dae_kv = parse_logfmt(raw) ?? {}
+      . = merge(., ._dae_kv)
+
+      .level = string(.level) ?? ""
+      .message = string(.msg) ?? raw
+
+      if exists(._qname) && is_string(._qname) {
+        .qname = ._qname
+        .qtype = string(.qtype) ?? ""
+        .app = "dae-dns-query"
+        .event_type = "dns_query"
+        del(._qname)
+      }
+
+      if exists(.ans) && is_string(.ans) {
+        .dns_answer_raw = .ans
+        .rcode = string(.rcode) ?? ""
+        .app = "dae-dns-answer"
+        .event_type = "dns_answer"
+
+        ._first_answer = parse_regex(.ans, r'\((?P<answer_type>A|AAAA)\):\s+(?P<answer_value>[0-9A-Fa-f:.]+)') ?? {}
+        if exists(._first_answer.answer_type) {
+          .answer_type = ._first_answer.answer_type
+          .answer_value = ._first_answer.answer_value
+        }
+      }
+
+      ._conn = parse_regex(.message, r'^(?P<src_addr>.+?) <-> (?P<dst_addr>.+)$') ?? {}
+      if exists(._conn.src_addr) && exists(._conn.dst_addr) {
+        if .event_type == "internal" {
+          .app = "dae-traffic"
+          .event_type = "traffic_flow"
+        }
+
+        .src_addr = ._conn.src_addr
+        .dst_addr = ._conn.dst_addr
+
+        ._src = parse_regex(.src_addr, r'^(?P<src_host>.+):(?P<src_port>\d+)$') ?? {}
+        if exists(._src.src_host) {
+          .src_host = ._src.src_host
+          .src_port = to_int(._src.src_port) ?? 0
+        }
+
+        ._dst = parse_regex(.dst_addr, r'^(?P<dst_host>.+):(?P<dst_port>\d+)$') ?? {}
+        if exists(._dst.dst_host) {
+          .dst_host = ._dst.dst_host
+          .dst_port = to_int(._dst.dst_port) ?? 0
+        }
+      }
+
+      if exists(.network) {
+        network = string(.network) ?? ""
+        ._net = parse_regex(network, r'^(?P<l4proto>tcp|udp)(?P<ip_version>[46])(?:\((?P<network_context>[^)]+)\))?$') ?? {}
+        if exists(._net.l4proto) {
+          .l4proto = ._net.l4proto
+          .ip_version = to_int(._net.ip_version) ?? 0
+        }
+        if exists(._net.network_context) { .network_context = ._net.network_context }
+      }
+
+      if exists(.pid) { .pid = to_int(.pid) ?? 0 }
+      if exists(.dscp) { .dscp = to_int(.dscp) ?? 0 }
+
+      del(.msg)
+      del(._dae_kv)
+      del(._conn)
+      del(._src)
+      del(._dst)
+      del(._net)
+      del(._first_answer)
+
+  dae_remap_2:
+    type: remap
+    inputs:
+      - journald_route.dae
+    source: |
+      .service = "dae"
+      .instance = string(.host) ?? "vyos"
+      .app = "dae-alt"
+      .event_type = "raw"
+      .pipeline = "dae_remap_2"
+      .schema_version = 1
+
+      raw = string(.message) ?? ""
+      .raw_message = raw
+      .message = raw
+
+      ._dae_kv = parse_logfmt(raw) ?? {}
+      . = merge(., ._dae_kv)
+
+      if exists(.msg) {
+        .message = string(.msg) ?? raw
+      }
+      if exists(._qname) && is_string(._qname) {
+        .qname = ._qname
+        .event_type = "dns_or_traffic_alt"
+        del(._qname)
+      }
+      if exists(.ans) && is_string(.ans) {
+        .dns_answer_raw = .ans
+        .event_type = "dns_answer_alt"
+      }
+
+      del(.msg)
+      del(._dae_kv)
+
+  smartdns_remap:
+    type: remap
+    inputs:
+      - journald_route.smartdns
+    source: |
+      .service = "smartdns"
+      .instance = string(.host) ?? "vyos"
+      .app = "smartdns-resolver"
+      .event_type = "resolver_log"
+      .schema_version = 1
+
+      raw = string(.message) ?? ""
+      .raw_message = raw
+      .message = raw
+
+      ._smart_json = parse_json(raw) ?? {}
+      if exists(._smart_json.level) { .level = string(._smart_json.level) ?? "" }
+      if exists(._smart_json.msg) { .message = string(._smart_json.msg) ?? raw }
+      if exists(._smart_json.time) {
+        ts = string(._smart_json.time) ?? ""
+        if ts != "" { .timestamp = parse_timestamp(ts, format: "%+") ?? .timestamp }
+      }
+
+      if !exists(.level) || .level == "" {
+        ._level = parse_regex(raw, r'(?i)\b(?P<level>TRACE|DEBUG|INFO|NOTICE|WARN|WARNING|ERROR|FATAL)\b') ?? {}
+        if exists(._level.level) { .level = ._level.level }
+      }
+
+      ._q = parse_regex(raw, r'(?i)(?P<qtype>A|AAAA|HTTPS|SVCB|PTR|CNAME|MX|TXT|SOA|NS)\s+\((?P<qname>[^)]+)\)') ?? {}
+      if exists(._q.qname) {
+        .qname = ._q.qname
+        .qtype = ._q.qtype
+        .event_type = "resolver_query_log"
+      }
+
+      ._upstream = parse_regex(raw, r'(?i)(?:upstream|server|resolver)[=:\s]+(?P<upstream>[^,\s]+)') ?? {}
+      if exists(._upstream.upstream) { .upstream = ._upstream.upstream }
+
+      del(._smart_json)
+      del(._level)
+      del(._q)
+      del(._upstream)
+
+  sshd_remap:
+    type: remap
+    inputs:
+      - journald_route.sshd
+    source: |
+      .service = "sshd"
+      .instance = string(.host) ?? "vyos"
+      .app = "sshd-auth"
+      .event_type = "auth_log"
+      .schema_version = 1
+
+  sshguard_remap:
+    type: remap
+    inputs:
+      - journald_route.sshguard
+    source: |
+      .service = "sshguard"
+      .instance = string(.host) ?? "vyos"
+      .app = "sshguard"
+      .event_type = "security_log"
+      .schema_version = 1
+
+  firewall_remap:
+    type: remap
+    inputs:
+      - journald_route.firewall
+    source: |
+      .service = "firewall"
+      .instance = string(.host) ?? "vyos"
+      .app = "firewall"
+      .event_type = "firewall_packet"
+      .schema_version = 1
+
+      raw = string(.message) ?? ""
+      .raw_message = raw
+      ._fw = parse_regex(raw, r'^(?:\[[^\]]+\]\s*)?\[(?P<RULE>[^\]]+)\](?P<fields>.*)$') ?? {}
+      if exists(._fw.RULE) {
+        .RULE = ._fw.RULE
+        fields = string(._fw.fields) ?? ""
+        ._kv = parse_key_value(fields, field_delimiter: " ", key_value_delimiter: "=", whitespace: "strict") ?? {}
+        . = merge(., ._kv)
+      } else {
+        .event_type = "kernel_log"
+      }
+
+      del(._fw)
+      del(._kv)
+      del(.fields)
+      del(.MAC)
+      del(.LEN)
+      del(.ID)
+      del(.RES)
+      del(.DF)
+      del(.TOS)
+      del(.SYN)
+      del(.TTL)
+      del(.URGP)
+      del(.WINDOW)
+
+  firewall_route:
+    type: route
+    inputs:
+      - firewall_remap
+    reroute_unmatched: false
+    route:
+      in: '.IN == "eth0"'
+      out: '.OUT == "eth0"'
+
+sinks:
+  vlogs:
+    type: elasticsearch
+    inputs:
+      - blocky_dns_only
+      - sshd_remap
+      - sshguard_remap
+      - firewall_route.in
+      - firewall_route.out
+    endpoints:
+      - {{ vars.vector_sink_endpoint }}
+    api_version: v8
+    compression: gzip
+    healthcheck:
+      enabled: false
+    query:
+      _msg_field: message
+      _time_field: timestamp
+      _stream_fields: service,instance,app
+      ignore_fields: PRIORITY,SYSLOG_FACILITY,SYSLOG_PID,SYSLOG_TIMESTAMP,_SOURCE_MONOTONIC_TIMESTAMP,_UID,_TRANSPORT,_SYSTEMD_UNIT,_SYSTEMD_SLICE,_SYSTEMD_INVOCATION_ID,_SYSTEMD_CGROUP,_STREAM_ID,_RUNTIME_SCOPE,_PID,__MONOTONIC_TIMESTAMP,__REALTIME_TIMESTAMP,_MACHINE_ID,_GID,_EXE,_COMM,_CMDLINE,_CAP_EFFECTIVE,_BOOT_ID

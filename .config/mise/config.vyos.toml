@@ -1,0 +1,310 @@
+#: VyOS router. MISE_ENV=vyos
+#: Layers on top of config.toml.
+#
+# A fifth class alongside bryan/work/irene/server, and the first one that is
+# not a machine anyone logs into to work. It exists to keep router state off
+# the other four: nothing here should ever load on a laptop or a VPS.
+#
+# Reached only by `mise bootstrap remote vyos`, whose inventory entry lives in
+# ~/.config/mise/config.local.toml because hostnames are network detail this
+# repo does not commit.
+#
+# ---------------------------------------------------------------------------
+# VyOS is not an ordinary Debian host. Two things constrain everything below.
+#
+# The root filesystem is an overlay whose upper layer is pinned to the running
+# image:
+#
+#     upperdir=/live/persistence/boot/v1.5-current-20260603-eBPF/rw
+#
+# So a file written to /etc survives reboots but belongs to *this image*.
+# `add system image` boots into a fresh upper layer, and only what VyOS itself
+# migrates comes along. Anything here must therefore be reappliable from this
+# repo rather than treated as durable on the router -- which is the whole
+# reason it is declared here instead of typed into the box once.
+#
+# That constraint is also why [tools] here stays short and stays *static*.
+# Tools install under ~/.local/share/mise as the bryan user and never enter
+# root's or a daemon's PATH, so a self-contained binary is safe. Anything that
+# drags a library chain along -- a conda package, a language runtime VyOS also
+# ships -- is not, because the router's own daemons resolve against the system
+# paths this would sit beside. Keep this list to standalone binaries.
+# ---------------------------------------------------------------------------
+
+# Self-contained binaries only; see the note above. This layers *on top of*
+# config.toml's [tools], so the router also gets the 14 tools every machine
+# gets -- listing ripgrep here adds to that set, it does not replace it.
+[tools]
+ripgrep = "latest"
+# Observability pipeline (aqua:vectordotdev/vector). Installed only -- nothing
+# here configures or runs it; it ships no config and starts no service until
+# one is declared. Qualifies as standalone: a single static Rust binary.
+vector = "latest"
+
+# ---------------------------------------------------------------------------
+# Making those tools reachable by name.
+#
+# Remote bootstrap stages this repo to a temporary directory, installs, and
+# deletes the staging dir. The binaries survive under ~/.local/share/mise; the
+# config that *declares* them does not, so a shim resolves to nothing:
+#
+#     mise ERROR No version is set for shim: rg
+#
+# Same failure as the cargo-nextest one in AGENTS.md -- installed, declared
+# nowhere. The ordinary fix, deploying [dotfiles]."~/.config/mise", does not
+# work here: those entries are symlinks into ~/.dotfiles, and the router has no
+# checkout for them to point at. So the router gets its own small config
+# instead, written as a managed file.
+#
+# The list below only needs to name what should resolve by name. It duplicates
+# config.toml deliberately rather than symlinking to it, and "latest" rather
+# than a pin means it keeps resolving to whatever is already installed instead
+# of drifting into a reinstall every time the base list moves.
+# ---------------------------------------------------------------------------
+
+# DO NOT reintroduce a [bootstrap.directories] entry under /home/bryan.
+#
+# This file previously declared:
+#
+#     [bootstrap.directories."/home/bryan/.config/mise"]
+#
+# Applying it replaced /home/bryan/.config wholesale. ~/.config/dotfiles and
+# ~/.config/nvim were destroyed; afterwards .config contained only mise, and
+# both .config and /home/bryan had a fresh mtime -- meaning .config was
+# recreated, not added to. Declaring a leaf directory is not safe here.
+#
+# [bootstrap.files] creates its own parents, so the entry was never needed.
+#
+# ---------------------------------------------------------------------------
+# ~/.config/mise/config.toml on the router is NOT managed here either.
+#
+# It used to be, as a managed regular file holding a copy of config.toml's tool
+# list, because the router had no checkout for [dotfiles] symlinks to point at.
+# It now has one, so the real config.toml is symlinked there instead and the
+# duplicate list is gone -- no second copy to drift.
+#
+# Do NOT re-add a `state = "absent"` entry for that path to clean it up. It was
+# needed exactly once, to clear the old regular file so the symlink could take
+# the path; left declared it oscillates, because [bootstrap.files] (phase 3)
+# deletes the symlink that [dotfiles] (phase 4) then recreates. A full run
+# hides it -- delete then recreate, net zero -- but `--only files` leaves the
+# path missing and every shim unresolvable again.
+#
+# Note the checkout is of origin/main, which does not carry this file (it is
+# uncommitted), so MISE_ENV=vyos is not available on the router and only
+# config.toml's 14 base tools resolve by name. vector is not among them and
+# does not need to be -- its unit invokes an absolute path.
+
+# The checkout the [dotfiles] symlinks resolve against. Also restores what a
+# [bootstrap.directories] entry in this file destroyed: bryan's ~/.config had a
+# dotfiles clone and an nvim config, and both were lost. root's own copies at
+# /root/.config were untouched.
+[bootstrap.repos."~/.dotfiles"]
+url = "https://github.com/bryan824/dotfiles.git"
+
+# ---------------------------------------------------------------------------
+# Getting mise onto PATH before its own activation block runs.
+#
+# VyOS's stock ~/.bashrc hard-assigns PATH near the end:
+#
+#     PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+#
+# mise appends its activation block *after* that line, so ~/.local/bin -- where
+# the remote bootstrap puts mise -- has just been wiped from PATH when
+# `eval "$(mise activate bash --shims)"` runs. The block fails with
+# `bash: mise: command not found` and every tool stays unreachable.
+#
+# Installing mise to /usr/local/bin directly does not work either: that upload
+# runs as the SSH user with no sudo, and mktemp in a root-owned directory
+# fails. So a root-owned two-line wrapper goes on the PATH VyOS insists on, and
+# the real binary stays in the user's home where bootstrap can replace it.
+# ---------------------------------------------------------------------------
+
+# bash and `exec -a`, not `#!/bin/sh` and a plain exec. mise's shims are
+# symlinks *to the mise binary*, and mise picks the tool from argv[0]. Once
+# this wrapper exists mise reshims to it, so every shim runs this script --
+# and a plain `exec` would hand the real binary argv[0] = "mise", making
+# `rg -n foo` parse as mise's own arguments:
+#
+#     mise ERROR no tasks defined in ~. Are you in a project directory?
+#
+# `exec -a "$0"` forwards the name the shim was invoked under, which is what
+# makes the same file work both as `mise` and as every shim pointing at it.
+# /bin/sh is dash here and has no `exec -a`.
+[bootstrap.files."/usr/local/bin/mise"]
+owner = "root"
+group = "root"
+mode = "0755"
+content = """
+#!/bin/bash
+exec -a "$0" /home/bryan/.local/bin/mise "$@"
+"""
+
+# vbash is a modified bash and reads ~/.bashrc, so that is the hook point.
+# Operational mode runs anything it finds on PATH -- the `Invalid command: [x]`
+# it prints for an unknown name is a PATH miss, not a CLI-template refusal.
+#
+# "shims" and not "activate" on purpose: activate installs prompt and chpwd
+# hooks into the shell VyOS gives its operators, and a router is the wrong
+# place to find out what that interacts with. shims only prepends
+# ~/.local/share/mise/shims to PATH.
+[bootstrap.mise_shell_activate]
+bashrc = "shims"
+
+# ---------------------------------------------------------------------------
+# Declaring a system service here takes two entries, and retiring one takes
+# two states. Learned from the hello-test smoke test that used to live here.
+#
+# [bootstrap.services] at system scope only *converges* a unit that already
+# exists -- it never writes one. So a system service needs a [bootstrap.files]
+# entry for the unit plus a [bootstrap.services] entry for its state. Only
+# `scope = "user"` writes its own unit file.
+#
+# To retire one, the two halves take different keywords:
+#
+#   [bootstrap.services.<name>]  state = "stopped", enabled = false
+#   [bootstrap.files."<unit>"]   state = "absent"
+#
+# `state = "absent"` on the service is rejected -- it is user-scope only:
+#
+#     bootstrap service 'x' sets state = "absent", which only applies to
+#     `scope = "user"` services
+#
+# Stop the service before removing its unit file. [bootstrap.files] runs in an
+# earlier phase than [bootstrap.services], so declaring both at once removes
+# the unit first and leaves systemd unable to disable it cleanly. Apply the
+# service state, then the file removal, then drop both entries.
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# vector, migrated from a hand-placed 0.55.0 to the mise-managed 0.58.0.
+#
+# Before this, /config/user-data/install-services.sh dropped the unit and the
+# binary lived at /config/user-data/bin/vector. That binary is deliberately
+# left in place as the rollback: restore
+# /config/user-data/systemd/vector.service.pre-mise-0.55 over the unit below,
+# `systemctl daemon-reload && systemctl restart vector`, and 0.55 is back.
+#
+# The path points through mise's `latest` symlink, so a `mise upgrade` moves
+# the running binary on the next restart. That is the point of migrating, and
+# it is also the cost: the binary now sits on the image-pinned overlay, so a
+# VyOS `add system image` leaves this unit pointing at nothing until remote
+# bootstrap runs again. /config/user-data would have survived that; this was
+# chosen deliberately over durability.
+#
+# 0.55 -> 0.58 crosses two releases with breaking changes. Neither applies
+# here, checked against the live config rather than assumed:
+#   - 0.57 disabled ${VAR} interpolation by default -- the config uses none.
+#   - 0.57 requires a literal prefix on {{ }} sink routing templates -- the
+#     config has no templates at all. Note `validate --no-environment` does
+#     NOT catch this (vectordotdev/vector#25840); the check that passed was a
+#     full `validate` run as root.
+#   - 0.58 removed azure_monitor_logs, the logdna alias, influxdb_logs
+#     `namespace`, http_server `encoding`, and the buffer_* gauges -- none
+#     present. The sink here is elasticsearch into VictoriaLogs.
+# ---------------------------------------------------------------------------
+
+# Written to /config/user-data/systemd/, NOT /etc/systemd/system/. The latter
+# is a symlink: /config/user-data/install-services.sh links every *.service in
+# this directory into /etc/systemd/system and enables it, which is how the unit
+# survives a VyOS image upgrade. Targeting /etc directly makes mise refuse --
+#
+#     refusing to replace non-file path /etc/systemd/system/vector.service
+#
+# -- which is the right call; forcing it would have replaced the symlink with a
+# regular file and quietly dropped the unit out of the durable directory.
+#
+# The rollback copy next to this file is named .pre-mise-0.55, not .service, so
+# install-services.sh's *.service glob does not pick it up as a second unit.
+[bootstrap.files."/config/user-data/systemd/vector.service"]
+owner = "root"
+group = "vyattacfg"
+mode = "0644"
+content = """
+[Unit]
+Description=A collector
+ConditionFileIsExecutable=/home/bryan/.local/share/mise/installs/vector/latest/vector-x86_64-unknown-linux-gnu/bin/vector
+
+[Service]
+StartLimitInterval=5
+StartLimitBurst=10
+ExecStart=/home/bryan/.local/share/mise/installs/vector/latest/vector-x86_64-unknown-linux-gnu/bin/vector "--config" "/config/user-data/etc/vector/config.yaml"
+Restart=always
+RestartSec=120
+
+[Install]
+WantedBy=multi-user.target
+"""
+
+[bootstrap.services.vector]
+state = "running"
+enabled = true
+on_change = "restart"
+
+# ---------------------------------------------------------------------------
+# vector's own configuration, managed from vyos/config/user-data/etc/vector/.
+#
+# That tree sits at the repo root rather than under .config/, because these
+# paths have no $HOME target for the dotfiles mirroring convention to mirror --
+# they are absolute router paths, and vyos/ mirrors them literally.
+#
+# Two values in it are network detail and this repo is public, so they are
+# age-encrypted below rather than committed in the clear. Everything else --
+# the journald source, nine VRL remaps, the routing -- is ordinary config and
+# lives in the template as plain text.
+#
+# NOT managed here, deliberately:
+#   - data/            vector's runtime state, including the journald cursor.
+#                      Managing it would reset the read position on every
+#                      apply and re-ship or skip logs.
+#   - GeoLite2-City.mmdb   61 MB, and MaxMind's GeoLite2 terms do not permit
+#                      redistribution. It would also be in git history forever.
+#   - vector.0.55-vrl-fixed3.yaml   a pre-migration backup; left where it is.
+# ---------------------------------------------------------------------------
+
+# Encrypted to two recipients: this Mac (so the values stay readable and
+# rotatable here) and a router-only key generated on the router itself, whose
+# private half has never left it. A compromise of the gateway therefore opens
+# these two values and nothing else -- notably not IPINFO_TOKEN, which is
+# encrypted to the Mac key alone.
+#
+# Audit the recipients of any of these with:
+#   grep '^<name>' config.vyos.toml | sed -E 's/.*age = "([^"]*)".*/\1/' \
+#     | base64 -d | grep '^-> '
+# Expect two '-> X25519' lines plus one '-grease' decoy.
+[vars]
+vector_sink_endpoint = { age = "YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA2a2NCVmRUTTQ3dUhIWmZPY0dEK29KRG9vcnEzOS9jcW5uWWtKRXBQZkUwCkZTWElndVJPdnZQcGYvT29JYVNSc0h2T3RYK2tFQjRhZkNvUmpOY1l6NjAKLT4gWDI1NTE5IFVmS1MzenR4Yjd3cTE3ZjBoVW82bkwyUlBzREtVeFZwdzdzQ2tBVXhOMDAKRy9mak1weTkyclFQZE1ZTVRvalNrMlQ1MC9aNjBJNlNWNDYvSUh5YW1YawotPiAkJUpnfX02Li1ncmVhc2UKR2FwUmwvZytnV2pPa2wwbElQZ2NSRFErTE50bE1jNG9oVTE2cE1HWnI0bXhOODQ0VTZJRUdUeE9sZGtQblVieQppM3VENzFEbFoxNExMMGp5STEwbnhpTUZiS2JkbS96ZWgvSVpQWjh0TUpnZW9ySUNQZmxyQVpWbWc2OS84SmNEClVqcwotLS0gMVFZcWxqN1ZwVUVxSGFvNHkwb2FUdU1vK3Q0bUczei82bGlyNW1ub1lRZwp4pifu7pFXBxJrr0AtgVvCtE/a741m0G5fCYN00qprrSSB8yT0yA3him8Iz0RqUNqd1EG8EE670aYxX5Htvx87EUzFRfiC/CnE0vUJ+IQ" }
+vector_lan_devices = { age = "YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBvQThycEtkbWJ0MEdFTmh4QTVWRzlnMEV5bXF0d3c1Tnp0cWM2Wk5tQ1g4CjNwN3RtUTJoamN2eGlhNHA2VFhpUXZidzZtSWw0U0pJcDNYSHoxZHdCZ00KLT4gWDI1NTE5IFY0SmJCVFBIRjJpem1HK1A2eUJ0UFhtalVOWmIvUisyVktrNldUeXhSMWcKTFJ6U2Zxa0liWU1qOVVFNUQ0SjIyQjNqYy9NRTBOS3M0aTRJQzVDYWV0RQotPiBHMy44JkRnLi1ncmVhc2UgQTFGeXsqZGsgUSxkQiwpekQgbmlUIEZ5cTdhMQpHUnB3ejVxT1pQd3U3SzMvVzFYMUx5cVBjTVUKLS0tIFowdDR2c3pic1kzeEJLRHQxWkZJZ0dXZEZrUXlJc2xnUmJ2bE9qQ2Rob1EKhuqc1TQERVH18NJLXUMbXVPhPFqNuR6/8pYAxpvLGGLT5uNGDJ9UHB+1v+HNSrgI2E2OHEAWM89A" }
+
+# `source` is relative to THIS FILE's directory, not the repo root and not the
+# router's filesystem -- hence ../../ to climb out of .config/mise/. Two wrong
+# guesses, both of which the dry-run caught:
+#
+#   "~/.dotfiles/vyos/..."  resolves on the *router*, against the origin/main
+#                           checkout, so it cannot see uncommitted work and
+#                           would couple every apply to a push.
+#   "vyos/..."              resolves to .config/mise/vyos/..., which does not
+#                           exist.
+#
+# The relative form reads from the staged copy of this working tree
+# (/tmp/mise-bootstrap.*/project/), so an apply ships what is on disk here.
+#
+# template = true runs the file through Tera on the router. The source config
+# contains no {{, {% or {# sequences of its own (checked), so the only
+# substitution is the endpoint on line 357. Verified byte-identical to the
+# running config on first apply -- managing it changed nothing.
+[bootstrap.files."/config/user-data/etc/vector/config.yaml"]
+source = "../../vyos/config/user-data/etc/vector/config.yaml.tera"
+template = true
+owner = "root"
+group = "vyattacfg"
+mode = "0644"
+notify = ["vector"]
+
+[bootstrap.files."/config/user-data/etc/vector/lan_device.csv"]
+source = "../../vyos/config/user-data/etc/vector/lan_device.csv.tera"
+template = true
+owner = "root"
+group = "vyattacfg"
+mode = "0644"
+notify = ["vector"]
