@@ -1,0 +1,103 @@
+#!/usr/bin/env zsh
+#MISE description="Regenerate zsh completions for installed CLIs into $ZDOTDIR/completions"
+#
+# Most CLIs here ship no _<tool> file anywhere zsh looks, so tab completion for
+# them silently does nothing. Two sources fix that:
+#
+#   1. tools that generate a completion script on demand (`mise completion zsh`)
+#   2. tools whose release archive ships one, which mise unpacks but never links
+#
+# Both land as plain #compdef files in $ZDOTDIR/completions, which is already on
+# fpath. That matters: zsh autoloads an fpath completion lazily on the first tab
+# press for that command, so 20 more files cost nothing at startup — unlike
+# `eval "$(tool completion zsh)"` in a startup fragment, which runs every time.
+#
+# Writing here bumps the directory's mtime, which is one of the triggers
+# 25_completion.zsh uses to rebuild the completion dumpfile. So a new completion
+# is live in the next shell with no extra step.
+#
+# Run after anything that changes tool versions; up.sh does exactly that.
+set -uo pipefail
+
+local dest=${ZDOTDIR:-${XDG_CONFIG_HOME:-$HOME/.config}/zsh}/completions
+command mkdir -p $dest
+
+# tool -> arguments that print a zsh completion script to stdout.
+local -A generators=(
+  bat       '--completion zsh'
+  bun       'completions zsh'
+  fd        '--gen-completions zsh'
+  gh        'completion -s zsh'
+  helm      'completion zsh'
+  herdr     'completion zsh'
+  kubectl   'completion zsh'
+  kustomize 'completion zsh'
+  lazygit   'completion zsh'
+  mise      'completion zsh'
+  opencode  'completion zsh'
+  rg        '--generate complete-zsh'
+  ruff      'generate-shell-completion zsh'
+  rustup    'completions zsh'
+  starship  'completions zsh'
+  supabase  'completion zsh'
+  talosctl  'completion zsh'
+  uv        'generate-shell-completion zsh'
+  watchexec '--completions zsh'
+)
+
+# cargo's completion comes out of rustup, under a different name.
+local -A generators_named=( _cargo 'rustup completions zsh cargo' )
+
+# tool -> path under `mise where <tool>` holding a shipped _<tool> file.
+# These ship in the release archive; mise unpacks it and links only the binary.
+local -a shipped=( bottom zoxide yazi )
+
+# All locals are declared here, once. `local` at script top level is typeset,
+# and typeset on an already-set name prints it, so re-declaring inside a loop
+# leaks "f=/some/path" onto stdout from the second iteration on.
+local -i written=0 skipped=0
+local t args out target cmd where f
+local -a found
+
+for t in ${(ok)generators}; do
+  (( $+commands[$t] )) || { (( skipped++ )); continue }
+  args=${generators[$t]}
+  out=$($t ${=args} 2>/dev/null)
+  # Guard against a tool that has no such subcommand and printed help or an
+  # error instead: only a real completion script starts with #compdef.
+  if [[ $out != '#compdef'* ]]; then
+    print -Pru2 -- "%F{3}[WARNING]%f: $t ${args} produced no completion script"
+    (( skipped++ ))
+    continue
+  fi
+  print -r -- $out >| $dest/_$t && (( written++ ))
+done
+
+for target in ${(ok)generators_named}; do
+  cmd=${generators_named[$target]}
+  (( $+commands[${cmd%% *}] )) || { (( skipped++ )); continue }
+  out=$(${=cmd} 2>/dev/null)
+  [[ $out == '#compdef'* ]] || { (( skipped++ )); continue }
+  print -r -- $out >| $dest/$target && (( written++ ))
+done
+
+# Shipped files: copy every _* the install directory carries. yazi ships _yazi
+# and _ya, so this globs rather than assuming one file per tool.
+for t in $shipped; do
+  where=$(mise where $t 2>/dev/null)
+  [[ -n $where && -d $where ]] || { (( skipped++ )); continue }
+  # Match on the basename, not the path: every path here contains ".local",
+  # so filtering the full path for a dot throws away every candidate.
+  found=()
+  for f in $where/**/_*(N.); do
+    # zsh completion files carry no extension; _btm.ps1 and friends are the
+    # PowerShell siblings shipped in the same directory.
+    [[ ${f:t} == *.* ]] || found+=$f
+  done
+  (( ${#found} )) || { (( skipped++ )); continue }
+  for f in $found; do
+    command cp -f $f $dest/${f:t} && (( written++ ))
+  done
+done
+
+print -Pru2 -- "%F{5}[INFO]%f: wrote ${written} completion file(s) to ${dest}, skipped ${skipped}"
