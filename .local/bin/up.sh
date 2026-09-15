@@ -16,13 +16,18 @@
 # missed path means the update quietly stops happening rather than erroring.
 set -uo pipefail
 
-# mise, by absolute path since nothing has activated it.
-eval "$("$HOME/.local/bin/mise" activate zsh)"
-
 # zim, because `zimfw` is a shell function rather than a binary. Sourcing it
 # again under the interactive caller is harmless -- this is a subprocess.
+#
+# Before mise for the same reason .zshrc loads 20 before 30: zim owns compinit,
+# and `mise activate` runs its own `compinit -i` when compdef is undefined.
+# Reversed, zim's completion module sees compdef already defined and warns
+# "completion was already initialized before completion module".
 : ${ZIM_HOME:=${ZDOTDIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/zsh}/.zim}
 [[ -e ${ZIM_HOME}/init.zsh ]] && source ${ZIM_HOME}/init.zsh
+
+# mise, by absolute path since nothing has activated it.
+eval "$("$HOME/.local/bin/mise" activate zsh)"
 
 # gcloud, which is not a mise tool and lives off PATH. Mirrors 40_tools.zsh.
 gcloud_bin=${XDG_DATA_HOME:-${HOME}/.local/share}/google-cloud-sdk/bin
