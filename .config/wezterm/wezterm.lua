@@ -3,6 +3,13 @@ local wezterm = require "wezterm"
 local act = wezterm.action
 local mux = wezterm.mux
 
+-- A GUI app inherits no mise-activated PATH, so mise-managed tools are spelled
+-- out. The shim, not installs/<tool>/latest/<tool>: it keeps working for a tool
+-- whose archive unpacks into a nested directory.
+local function shim(name)
+  return (os.getenv "HOME" or "") .. "/.local/share/mise/shims/" .. name
+end
+
 wezterm.on("update-right-status", function(window, pane)
   local name = window:active_key_table()
   if name then name = "TABLE: " .. name end
@@ -24,8 +31,8 @@ local config = {
   window_close_confirmation = "NeverPrompt",
   launch_menu = {
     {
-      label = "top",
-      args = { "/run/current-system/sw/bin/btop" },
+      label = "btm",
+      args = { shim "btm" },
     },
   },
   use_ime = true,
@@ -234,12 +241,10 @@ local config = {
   },
 }
 
--- Start herdr instead of a bare shell, as kitty does via launch.conf.
--- A GUI app inherits no mise-activated PATH, so this goes through mise's shim,
--- which also survives a tool whose install layout is nested. Guarded: without
--- herdr installed an unconditional default_prog leaves wezterm unable to open
--- any window at all.
-local herdr = (os.getenv "HOME" or "") .. "/.local/share/mise/shims/herdr"
+-- Start herdr instead of a bare shell, as kitty does via launch.conf. Guarded:
+-- an unconditional default_prog pointing at a missing binary leaves wezterm
+-- unable to open a window at all, which is how the old zellij path behaved.
+local herdr = shim "herdr"
 local f = io.open(herdr)
 if f then
   f:close()

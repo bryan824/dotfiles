@@ -135,7 +135,7 @@ sidebar_max_width = 36
 
 # Capture mouse input for Herdr's mouse UI.
 # Set false to let the terminal handle normal clicks, such as Cmd-clicking URLs.
-# Pane apps like lazygit and btop can still receive mouse when they request it.
+# Pane apps like lazygit and btm can still receive mouse when they request it.
 # mouse_capture = true
 
 # Force a full redraw when the outer terminal regains focus.
