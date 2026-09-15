@@ -22,9 +22,7 @@ $haskell\
 $python\
 [](fg:green bg:sapphire)\
 $conda\
-{%- if vars.class is defined and vars.class in ["bryan", "work"] %}
 $gcloud\
-{%- endif %}
 $kubernetes\
 [](fg:sapphire bg:lavender)\
 $time\

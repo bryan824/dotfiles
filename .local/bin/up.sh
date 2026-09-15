@@ -40,21 +40,13 @@ local -a steps=(
   'zimfw update'
   'uv tool upgrade --all'
   'gcloud components update --quiet'
+  # Both caches describe the versions above. _evalcache keys on the command
+  # string, not the binary, so it serves a stale init forever otherwise — this
+  # held a direnv init long after direnv left the config. Expanded here, at
+  # array-build time: ${(z)} below splits words without expanding them.
+  "rm -rf -- ${ZDOTDIR:?}/zsh-evalcache"
+  'mise run shell:completions'
 )
-
-# Anything above can change a tool's version, and two caches go stale with it:
-#
-#   - $ZSH_EVALCACHE_DIR holds the *output* of `atuin init zsh` and friends.
-#     _evalcache keys its cache on the command string, not the binary, so a
-#     newer tool keeps serving the old init forever. This directory still had a
-#     cached direnv init long after direnv was removed from the config.
-#   - $ZDOTDIR/completions holds generated #compdef files, which describe the
-#     flags of the version that generated them.
-#
-# Both regenerate on demand, so clearing beats trying to detect staleness.
-# These run as code rather than as entries in the array above: ${(z)} splits a
-# string into words without expanding it, so an `rm -rf ${VAR}` step would hand
-# rm the six literal characters "${VAR}".
 local step tool
 for step in $steps; do
   tool=${step%% *}
@@ -62,15 +54,3 @@ for step in $steps; do
   print -Pru2 -- "%F{5}[INFO]%f: $step"
   ${(z)step} || print -Pru2 -- "%F{1}%B[ERROR]%f%b: $step failed"
 done
-
-local evalcache=${ZSH_EVALCACHE_DIR:-${ZDOTDIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/zsh}/zsh-evalcache}
-if [[ -d ${evalcache:?} ]]; then
-  print -Pru2 -- "%F{5}[INFO]%f: clearing ${evalcache}"
-  rm -rf -- ${evalcache:?}
-fi
-
-if (( $+commands[mise] )); then
-  print -Pru2 -- "%F{5}[INFO]%f: mise run shell:completions"
-  mise run shell:completions ||
-    print -Pru2 -- "%F{1}%B[ERROR]%f%b: mise run shell:completions failed"
-fi

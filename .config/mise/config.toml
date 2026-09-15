@@ -52,6 +52,7 @@ package_manager = "bun"
 "~/.config/ripgrep" = {}
 "~/.config/rustfmt" = {}
 "~/.config/git/ignore" = { mode = "symlink" }
+"~/.config/starship.toml" = { mode = "symlink" }
 
 # Body of the `up` function, and of bryan's dev.mise.self-update LaunchAgent.
 # No variants deliberately: the agent is macOS-only, but `up` is how every
@@ -93,10 +94,6 @@ package_manager = "bun"
 
 [dotfiles."~/.config/git/config"]
 source = "~/.dotfiles/.config/git/config.tera"
-mode = "template"
-
-[dotfiles."~/.config/starship.toml"]
-source = "~/.dotfiles/.config/starship.toml.tera"
 mode = "template"
 
 [dotfiles."~/.config/zsh/80_host.zsh"]

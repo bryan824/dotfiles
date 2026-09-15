@@ -79,10 +79,3 @@ stderr_path = "~/Library/Logs/up-launchagent.err"
 # That key is not in this repo and is the only thing that opens this value.
 [env]
 IPINFO_TOKEN = { age = "YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBFVHdSbGRrNjl3TWpWbjlvejJEb01EbytyL1NSekN5TDZ5cHFGWHFiaFZvCnJlSWpTdmFxQVVsNSt2UEFZUW9rR1lmeEV5cXQyQUlDaGtZV3pzTWMrYmcKLT4geVxEIUUtZ3JlYXNlICIuK1c+Rm0gO15OXj0gU2Y4LWRwJzogXCd6CnNQdjJqSW5ZcDlHK2laOUxhSyt2UlIxOWRLdXBSalVxVEVWTHlTVnVrZ1htME1QSjA2ejUwWDJadUtrU29LbFMKdW8rR1BRM0VDcFlmcTVvM3RqKzlFZ3N1UUNUYitZdGNoc1h3WkxMb2Z3L0c3SGMySjE1OAotLS0gWjM4Wm9rMWhjc0UyekhFVGhibGRGODVwSXdoU1dDY1FzaVppNkFKRFNPYwoOLs4GLxmSyIL4ELNf7/1E4RF4OrqjT9/d/gYJDPFLnS1GpBLBOTsSJnJ4ctUk" }
-
-# Machine class, readable by .tera templates. get_env("MISE_ENV") is NOT a
-# substitute: mise resolves the class from ~/.config/mise/miserc.toml, so it
-# loads this file even when MISE_ENV is absent from the environment, but a
-# template reading the process environment then renders as if unclassed.
-[vars]
-class = "bryan"

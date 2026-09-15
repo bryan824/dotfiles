@@ -9,10 +9,3 @@ history.enabled = false
 
 # No [tools] section: base is already the server tool set. Server-exclusive
 # tools (systemd helpers, node_exporter, and so on) go here as they come up.
-
-# Machine class, readable by .tera templates. get_env("MISE_ENV") is NOT a
-# substitute: mise resolves the class from ~/.config/mise/miserc.toml, so it
-# loads this file even when MISE_ENV is absent from the environment, but a
-# template reading the process environment then renders as if unclassed.
-[vars]
-class = "server"
