@@ -22,7 +22,7 @@ $haskell\
 $python\
 [](fg:green bg:sapphire)\
 $conda\
-{%- if get_env(name="MISE_ENV", default="") in ["bryan", "work"] %}
+{%- if vars.class is defined and vars.class in ["bryan", "work"] %}
 $gcloud\
 {%- endif %}
 $kubernetes\
