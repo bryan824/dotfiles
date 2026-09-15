@@ -22,7 +22,6 @@ local config = {
   default_cursor_style = "BlinkingBlock",
   cursor_blink_rate = 500,
   window_close_confirmation = "NeverPrompt",
-  default_prog = { "/run/current-system/sw/bin/zellij", "-l", "welcome" },
   launch_menu = {
     {
       label = "top",

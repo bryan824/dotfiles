@@ -72,9 +72,6 @@ package_manager = "bun"
 "~/.config/nehir" = { mode = "symlink-each", variants = [{ profile = "bryan" }, { profile = "work" }, { profile = "irene" }] }
 "~/.config/television" = { mode = "symlink", variants = [{ profile = "bryan" }, { profile = "work" }, { profile = "irene" }] }
 
-# --- bryan + work only -------------------------------------------------------
-"~/.config/zellij" = { mode = "symlink-each", variants = [{ profile = "bryan" }, { profile = "work" }] }
-
 # --- machines that run rclone / kopia backups (bryan / irene) -----------------
 # Both files follow the tools they configure. A config whose audience drifts
 # from its tool's is the bug that shipped twice here.

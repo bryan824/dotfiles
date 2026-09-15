@@ -25,7 +25,7 @@ What each class gets:
 | terminals (kitty, ghostty, wezterm) | ✅ | ✅ | ✅ | — |
 | window managers (aerospace, nehir) | ✅ | ✅ | ✅ | — |
 | television, herdr, Claude settings | ✅ | ✅ | ✅ | — |
-| k9s, zellij, kubectl, helm, kustomize, duckdb | ✅ | ✅ | — | — |
+| k9s, kubectl, helm, kustomize, duckdb | ✅ | ✅ | — | — |
 | talosctl, cilium, supabase, kopia, agent tooling | ✅ | — | — | — |
 | antigravity-cli, kopia, rclone | — | — | ✅ | — |
 
