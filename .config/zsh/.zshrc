@@ -4,12 +4,14 @@
 # Startup fragments load in lexical order; the number prefix is the contract.
 # Gaps of 10 so a new fragment inserts without renumbering.
 #
-#   00 environment/PATH   30 mise            60 aliases
-#   10 options/history    40 tool hooks      70 keybindings
-#   20 zim (compinit)     50 functions       80 host-specific
+#   00 environment/PATH   25 completion      60 aliases
+#   10 options/history    30 mise            70 keybindings
+#   20 zim (plugins)      40 tool hooks      80 host-specific
+#                         50 functions
 #
-# 20 before 30 matters: zim owns compinit, and mise runs its own when compdef
-# is still undefined.
+# 25 before 30 matters: 25 owns compinit, and mise runs its own when compdef
+# is still undefined. 20 before 25 matters too — zsh-completions must be on
+# fpath before compinit runs.
 #
 # Glob qualifiers: N = null-glob (no error if empty), - = resolve symlinks
 # before testing, . = regular files only.

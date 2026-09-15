@@ -1,11 +1,8 @@
-# zim — plugin manager, and the single owner of compinit.
-#
-# Must run before any fragment that wants completions: `mise activate` (30) runs
-# its own `compinit -i` when compdef is undefined, which would pre-empt zim's
-# completion module — double compinit, and zsh-completions' fpath missed on the
-# first pass.
+# zim — plugin manager. compinit lives in 25_completion.zsh, which must run
+# after this file so zsh-completions is already on fpath, and before 30_mise.zsh
+# because `mise activate` runs its own `compinit -i` when compdef is undefined.
 
-# Personal completion functions must be on fpath before zim's compinit runs.
+# Personal completion functions must be on fpath before compinit runs in 25.
 fpath+=("$ZDOTDIR/completions")
 
 # Download zimfw if missing.
