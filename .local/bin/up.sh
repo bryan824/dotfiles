@@ -39,6 +39,8 @@ local -a steps=(
   'zimfw upgrade'
   'zimfw update'
   'uv tool upgrade --all'
+  # pi itself is a mise npm tool, upgraded above; its extensions are not.
+  'pi update --extensions'
   'gcloud components update --quiet'
   # Both caches describe the versions above. _evalcache keys on the command
   # string, not the binary, so it serves a stale init forever otherwise — this
