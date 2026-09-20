@@ -8,4 +8,6 @@ if (( $+commands[mise] )); then
 fi
 
 # Editor — after mise activation so mise-managed Neovim is visible.
-(( $+commands[nvim] )) && export EDITOR="nvim"
+# VISUAL too: git, crontab and sudoedit prefer it and fall back to EDITOR only
+# when it is unset, so leaving it empty hands those tools vi on some systems.
+(( $+commands[nvim] )) && export EDITOR="nvim" VISUAL="nvim"

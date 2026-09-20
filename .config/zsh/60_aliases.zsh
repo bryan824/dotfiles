@@ -4,8 +4,11 @@ alias path='print -l -- $path'
 alias fpath='print -l -- $fpath'
 
 alias df='df -H'
-alias du='du -d 1 -h | sort -h'
 alias rm='rm -vI'
+
+# Not an alias: arguments land after the last word, so `du somedir` would have
+# expanded to `du -d 1 -h | sort -h somedir` and failed with "sort: Is a directory".
+du() { command du -d 1 -h "$@" | sort -h; }
 
 if [[ $OSTYPE == darwin* ]]; then
   alias topc='top -o cpu'

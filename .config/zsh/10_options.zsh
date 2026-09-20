@@ -32,6 +32,7 @@ HISTORY_IGNORE='(cd|ll|lla|lt|d|exit|hist|history|ls|pwd|exit|* --help|h|zsht|.|
 # Completion options
 setopt AUTO_MENU       # show completion menu on successive tab press
 setopt GLOBDOTS        # dotfiles are matched in completions without specifying the dot
+setopt NO_CASE_GLOB    # globs and completion match without regard to case
 setopt PROMPT_SUBST    # allow expansion in prompts
 setopt PUSHDIGNOREDUPS # don't push multiple copies of directories onto the directory stack
 setopt PUSHDMINUS      # exchange meanings of + and - with a number in the directory stack

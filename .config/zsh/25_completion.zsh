@@ -22,7 +22,7 @@ fpath=(${ZIM_HOME}/modules/completion/functions ${fpath})  # _zimfw
   [[ ${zdumpfile}.zwc -nt ${zdumpfile} ]] || zcompile ${zdumpfile}
 }
 
-setopt ALWAYS_TO_END COMPLETE_IN_WORD NO_CASE_GLOB NO_LIST_BEEP
+# Shell options live in 10_options.zsh, including the completion ones.
 
 zstyle ':completion::complete:*' use-cache on
 zstyle ':completion:*' menu select
@@ -46,7 +46,6 @@ zstyle ':completion:*:rm:*' file-patterns '*:all-files'
 zstyle ':completion:*:manuals' separate-sections true
 zstyle ':completion:*:manuals.(^1*)' insert-sections true
 zstyle ':completion:*:*:*:users' ignored-patterns '_*'
-zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
 
 # Smart case: plain case-insensitive matching is broken in zsh 5.9.
 # https://www.zsh.org/mla/workers/2022/msg01229.html
