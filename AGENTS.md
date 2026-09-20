@@ -163,8 +163,32 @@ Never pin the interpreter in two places. The cookbook's project config lists
 ran: mise reported 3.13 while the venv uv built was 3.14. uv resolves the
 interpreter from `requires-python` in `pyproject.toml`, so the generated
 `mise.toml` declares `uv` and stays out of it. A repo that must pin gets a
-`.python-version`, which `idiomatic_version_file_enable_tools = ["python"]`
-makes mise honour too — note `uv init --bare` does *not* write one.
+`.python-version`, which uv reads natively — `uv python pin` is what writes it,
+and note `uv init --bare` does *not*.
+
+**Do not add `"python"` to `idiomatic_version_file_enable_tools`.** It looks
+like it only teaches mise to respect that pin, but a version file mise honours
+is a version file mise *installs for*, which is the second place all over
+again. It never appeared in any `[tools]`, so the damage was invisible: seven
+`.python-version` files under `~/src` had quietly pulled down 133M of mise
+interpreters that no config requested and `mise ls python` reported as
+`"active": false`. `~/src/projects/cll` resolved to mise's 3.13.15 while its
+venv ran uv's 3.13.2 — the exact split this rule exists to prevent.
+
+The tell is the shims. Installing python populates `~/.local/share/mise/shims`
+with `python`, `python3`, `pip`, `pip3`…, and with no version set globally each
+one fails:
+
+```
+$ python --version
+mise ERROR No version is set for shim: python
+```
+
+That broke `uv python list`, which probes interpreters on PATH. It stayed
+hidden because `python3` finds `/usr/bin/python3` to fall back to and silently
+answers 3.9.6, while bare `python` has nothing and hard-errors. After removing
+the setting and the orphans, `python` is correctly not found: there is no
+global interpreter here by design, and `uv run` is how you get one.
 
 Tooling splits by what imports project code:
 

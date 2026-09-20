@@ -15,8 +15,14 @@ dotfiles.default_mode = "symlink-each"
 # Python is uv's job, not mise's: uv installs the interpreter, owns the lockfile
 # and creates .venv. mise only activates that venv on cd, which is the whole of
 # what direnv's layout_uv used to do. Requires a uv.lock for detection.
+#
+# No idiomatic_version_file_enable_tools here. Adding "python" to it made mise
+# read .python-version as a version request and install a *second* interpreter
+# beside uv's — see the two-installers rule in AGENTS.md. uv reads that file
+# natively (`uv python pin` writes it), so the setting bought no pinning and
+# only created orphan installs plus python/pip shims that error with
+# "No version is set for shim".
 python.uv_venv_auto = "source"
-idiomatic_version_file_enable_tools = ["python"]
 
 [settings.npm]
 bun = true
