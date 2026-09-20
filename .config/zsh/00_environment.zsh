@@ -19,7 +19,7 @@ export PNPM_HOME="$XDG_DATA_HOME/pnpm"
 export DO_NOT_TRACK=1
 export OMO_SEND_ANONYMOUS_TELEMETRY=0
 export INSTALLER_NO_MODIFY_PATH=1 # https://docs.astral.sh/uv/configuration/environment/#installer_no_modify_path
-export CLOUDSDK_PYTHON="$XDG_DATA_HOME/uv/python/cpython-3.14-macos-aarch64-none/bin/python3.14"
+# CLOUDSDK_PYTHON is resolved in 40_tools.zsh, next to the gcloud block that needs it.
 
 # zim
 export ZIM_CONFIG_FILE="$ZDOTDIR/.zimrc"

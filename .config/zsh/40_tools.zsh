@@ -15,5 +15,16 @@
 # Google Cloud SDK — installed under XDG_DATA_HOME rather than $HOME.
 if [[ -d "$XDG_DATA_HOME/google-cloud-sdk" ]]; then
   path=("$XDG_DATA_HOME/google-cloud-sdk/bin" $path)
+
+  # gcloud needs its own interpreter and uv owns every python here. Resolve the
+  # newest uv-managed one by glob rather than pinning a version and platform
+  # triple: the old literal cpython-3.14-macos-aarch64-none path broke the moment
+  # uv bumped python, and named a directory no Linux machine has.
+  # (Nn[-1]) = null-glob, numeric sort, last match.
+  () {
+    local py=( $XDG_DATA_HOME/uv/python/cpython-[0-9]*/bin/python3(Nn[-1]) )
+    (( $#py )) && export CLOUDSDK_PYTHON=$py[1]
+  }
+
   zsh-defer source "$XDG_DATA_HOME/google-cloud-sdk/completion.zsh.inc"
 fi
