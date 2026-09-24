@@ -34,7 +34,7 @@ fi
 # Tools
 (( $+commands[nix]     )) && alias flakeup='nix flake update'
 (( $+commands[kubectl] )) && alias k='kubectl'
-(( $+commands[bat]     )) && alias cat='bat --theme="Coldark-Dark" --italic-text=always --style="numbers,changes,header"'
+(( $+commands[bat]     )) && alias cat='bat'   # flags live in ~/.config/bat/config
 if (( $+commands[kitty] )); then
   alias icat='kitten icat'
   alias s='kitten ssh'

@@ -63,6 +63,7 @@ package_manager = "bun"
 
 # --- every machine -----------------------------------------------------------
 "~/.zshenv" = { mode = "symlink" }
+"~/.config/bat" = {}
 "~/.config/ripgrep" = {}
 "~/.config/rustfmt" = {}
 "~/.config/git/ignore" = { mode = "symlink" }
