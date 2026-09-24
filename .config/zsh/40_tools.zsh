@@ -13,8 +13,11 @@
 [[ -r $ZDOTDIR/fzf-completion.zsh ]] && zsh-defer source $ZDOTDIR/fzf-completion.zsh
 
 # Google Cloud SDK — installed under XDG_DATA_HOME rather than $HOME.
+# Appended, not prepended: this runs after mise activation, so a prepend would
+# rank gcloud's bin above every mise tool (`mise doctor` warns), and a gcloud
+# component such as kubectl would silently shadow the mise one.
 if [[ -d "$XDG_DATA_HOME/google-cloud-sdk" ]]; then
-  path=("$XDG_DATA_HOME/google-cloud-sdk/bin" $path)
+  path+=("$XDG_DATA_HOME/google-cloud-sdk/bin")
 
   # gcloud needs its own interpreter and uv owns every python here. Resolve the
   # newest uv-managed one by glob rather than pinning a version and platform

@@ -15,7 +15,6 @@ export PYTHONDONTWRITEBYTECODE=1 # suppress __pycache__ / .pyc files
 export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}/ripgrep/ripgreprc"
 export SEABORN_DATA="${XDG_CONFIG_HOME}/seaborn-data"
 export ZSH_EVALCACHE_DIR="$ZDOTDIR/zsh-evalcache"
-export PNPM_HOME="$XDG_DATA_HOME/pnpm"
 export DO_NOT_TRACK=1
 export OMO_SEND_ANONYMOUS_TELEMETRY=0
 export INSTALLER_NO_MODIFY_PATH=1 # https://docs.astral.sh/uv/configuration/environment/#installer_no_modify_path
@@ -30,12 +29,14 @@ typeset -gU path fpath
 
 # Base PATH — static/user bin dirs only. mise activation in 30_mise.zsh prepends
 # managed tool install dirs for interactive shells, so we do not add shims here.
+# (N-/) keeps an entry only if it resolves to a directory: the same file serves
+# every machine, and a mac without WezTerm or a server without rustup should
+# not carry a PATH entry to nothing.
 path=(
-  /Applications/WezTerm.app/Contents/MacOS
-  /Applications/kitty.app/Contents/MacOS
-  "$PNPM_HOME"
-  "$HOME/.cargo/bin"
-  "$HOME/.local/bin"
+  /Applications/WezTerm.app/Contents/MacOS(N-/)
+  /Applications/kitty.app/Contents/MacOS(N-/)
+  $HOME/.cargo/bin(N-/)
+  $HOME/.local/bin(N-/)
   $path
 )
 
