@@ -1,10 +1,8 @@
 style_edition = "2024"
-version = "Two"
 use_small_heuristics = "Max"
 fn_params_layout = "Vertical"
 brace_style = "SameLineWhere"
 control_brace_style = "AlwaysSameLine"
-# This file should exist even if empty, to stop a spurious config file from being picked up in the parent.
 newline_style = "Unix"
 
 comment_width = 100
