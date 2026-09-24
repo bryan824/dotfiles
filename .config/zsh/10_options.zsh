@@ -35,7 +35,7 @@ setopt HIST_VERIFY            # if a command triggers history expansion, show it
 HISTFILE="$ZDOTDIR/.zsh_history"
 HISTSIZE=1000000000
 SAVEHIST=1000000000
-HISTORY_IGNORE='(cd|ll|lla|lt|d|exit|hist|history|ls|pwd|exit|* --help|h|zsht|.|..|...|....|.....)'
+HISTORY_IGNORE='(cd|l|ll|lt|ls|pwd|exit|history|* --help|.|..|...|....|.....)'
 
 # Completion options
 setopt AUTO_MENU       # show completion menu on successive tab press

@@ -4,8 +4,8 @@
 # the same thing: adding or removing a file bumps its directory's mtime, and an
 # edit to an existing one needs no rebuild (the dump maps command -> function).
 #
-# Must run after 20 (zsh-completions on fpath) and before 30 (mise runs its own
-# compinit when compdef is undefined).
+# Must run after 20, which puts zsh-completions and $ZDOTDIR/completions on
+# fpath.
 
 fpath=(${ZIM_HOME}/modules/completion/functions ${fpath})  # _zimfw
 

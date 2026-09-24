@@ -1,6 +1,5 @@
 # zim — plugin manager. compinit lives in 25_completion.zsh, which must run
-# after this file so zsh-completions is already on fpath, and before 30_mise.zsh
-# because `mise activate` runs its own `compinit -i` when compdef is undefined.
+# after this file so zsh-completions is already on fpath.
 
 # Personal completion functions must be on fpath before compinit runs in 25.
 fpath+=("$ZDOTDIR/completions")

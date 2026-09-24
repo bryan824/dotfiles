@@ -9,9 +9,9 @@
 #   20 zim (plugins)      40 tool hooks      80 host-specific
 #                         50 functions
 #
-# 25 before 30 matters: 25 owns compinit, and mise runs its own when compdef
-# is still undefined. 20 before 25 matters too — zsh-completions must be on
-# fpath before compinit runs.
+# 20 before 25 matters: zim puts zsh-completions on fpath, and compinit in 25
+# only sees what is on fpath when it runs. 30 before 40 matters too: 40 tests
+# $+commands for tools that only mise activation puts on PATH.
 #
 # Glob qualifiers: N = null-glob (no error if empty), - = resolve symlinks
 # before testing, . = regular files only.
