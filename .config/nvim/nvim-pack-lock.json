@@ -1,5 +1,10 @@
 {
   "plugins": {
+    "MiniMax": {
+      "rev": "b7abd05e987bc6a76c15cfacef6d6d563ad92229",
+      "src": "https://github.com/nvim-mini/MiniMax",
+      "version": "'main'"
+    },
     "conform.nvim": {
       "rev": "619363c30309d29ffa631e67c8183f2a72caa373",
       "src": "https://github.com/stevearc/conform.nvim"
