@@ -288,6 +288,13 @@ Hooks are hk, not prek and not pre-commit. `hk.pkl` is Pkl, and the two
 `package://` URLs in it pin the hk version — bumping hk means editing both,
 then `mise run preset:update` per project. `hk install` writes the git shim.
 
+The generated `mise.toml` pins `hk` to that same *major*. It used to float on
+`latest` while the Pkl stayed on 1.58.1, so the day mise installed hk 2 every
+generated config failed `hk validate` with "union property 'command' has no
+selected default" — a pre-commit hook that errors on every commit. A bump
+touches four places together: `common.pkl`, both templates' `hk.pkl.jinja`,
+and the major in both `mise.toml.jinja`.
+
 The reason it is not prek: hk's steps carry read/write effects, so it schedules
 them in parallel with file locks, and the same definitions run as `hk check`
 and `hk fix` from the terminal or CI rather than only as a hook. It also has

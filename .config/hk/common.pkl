@@ -20,8 +20,8 @@
 /// Step types come from two different packages and Pkl rejects the mapping.
 module common
 
-import "package://github.com/jdx/hk/releases/download/v1.58.1/hk@1.58.1#/Config.pkl"
-import "package://github.com/jdx/hk/releases/download/v1.58.1/hk@1.58.1#/Builtins.pkl"
+import "package://github.com/jdx/hk/releases/download/v2.1.0/hk@2.1.0#/Config.pkl"
+import "package://github.com/jdx/hk/releases/download/v2.1.0/hk@2.1.0#/Builtins.pkl"
 
 /// Language-agnostic hygiene. Every project gets these.
 base: Mapping<String, Config.Step> = new {

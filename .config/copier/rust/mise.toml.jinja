@@ -8,7 +8,10 @@
 "cargo:cargo-nextest" = "latest"
 watchexec = "latest"
 {%- if hooks %}
-hk = "latest"
+# Major only: hk.pkl pins its schema to a hk release, and a binary that floats
+# across a major rejects it ("union property 'command' has no selected
+# default" on 1.x configs under hk 2).
+hk = "2"
 {%- endif %}
 
 [tasks.sync]
