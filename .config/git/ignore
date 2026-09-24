@@ -4,19 +4,25 @@
 .opencode/
 .agents/
 .omo/
-context/
+# Root only: agent memory (project-memory) lives in <repo>/context/. Unanchored,
+# this also swallowed every src/context/ in every repo.
+/context/
 skills-lock.json
 
 # macOS
 .DS_Store
 .AppleDouble
 .LSOverride
-Icon?
+# Finder's custom-folder-icon file is named Icon + CR. `Icon?` looked right but
+# matched `icons/` too, since macOS repos default to core.ignorecase. git drops
+# one trailing CR per line, hence two literal CRs below -- do not let an editor
+# strip them.
+Icon
 ._*
 .Spotlight-V100
 .Trashes
 
-# Env / direnv
+# Env files
 .envrc
 .env
 .env.*
