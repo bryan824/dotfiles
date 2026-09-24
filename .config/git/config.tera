@@ -3,7 +3,45 @@
 	name = {{ vars.git_name }}
 	email = {{ vars.git_email }}
 {%- endif %}
+# Xcode's system gitconfig sets this on a mac; servers have nothing, so `git
+# init` there started on master.
+[init]
+	defaultBranch = main
 [pull]
-    rebase = true
+	rebase = true
+[rebase]
+	# `pull` on a dirty tree stashes around the rebase instead of refusing.
+	autoStash = true
+	autoSquash = true
+	# Rebasing the bottom of a branch stack moves the branches stacked on it.
+	updateRefs = true
+[push]
+	# First push of a new branch needs no --set-upstream.
+	autoSetupRemote = true
+	followTags = true
+[fetch]
+	prune = true
+[merge]
+	# Conflict hunks show the common ancestor, minus lines both sides share.
+	# Needs git >= 2.35; older git rejects the value, so mind an old server.
+	conflictStyle = zdiff3
+[rerere]
+	# Resolve a conflict once; replay the resolution on every later rebase.
+	enabled = true
+	autoUpdate = true
+[diff]
+	algorithm = histogram
+	colorMoved = plain
+[commit]
+	# The diff under the message in the editor, so the message describes it.
+	verbose = true
+[branch]
+	sort = -committerdate
+[tag]
+	sort = version:refname
+[column]
+	ui = auto
+[help]
+	autocorrect = prompt
 [alias]
 	reinit = "!f(){ branch=$(git branch --show-current) || exit 1; test -n \"$branch\" || { echo \"Not on a branch\" >&2; exit 1; }; remote=$(git config branch.\"$branch\".remote || echo origin); git add -A && commit=$(git commit-tree \"$(git write-tree)\" -m \"${1:-Init commit}\") && git reset --hard \"$commit\" && git push --force-with-lease \"$remote\" \"HEAD:$branch\"; };f"
