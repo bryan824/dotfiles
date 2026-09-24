@@ -39,8 +39,6 @@ function _load_zsh_history_substring_search() {
   fi
   bindkey '^P' history-substring-search-up
   bindkey '^N' history-substring-search-down
-  bindkey -M vicmd 'k' history-substring-search-up
-  bindkey -M vicmd 'j' history-substring-search-down
 }
 zsh-defer _load_zsh_history_substring_search
 zsh-defer source ${ZIM_HOME}/modules/zsh-autosuggestions/zsh-autosuggestions.zsh

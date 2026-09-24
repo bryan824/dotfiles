@@ -1,3 +1,11 @@
+# Keymap, pinned. Left implicit, zsh picks vi whenever $EDITOR or $VISUAL
+# contains "vi" at the moment zle first loads -- so with EDITOR=nvim this shell
+# came up in viins, where ^A/^E/^K insert literal characters, and which keymap
+# won depended on whether EDITOR was inherited or set later in startup. Here,
+# not in 70_keybindings.zsh, because zim's input module (20) binds into
+# whatever `main` is when it loads.
+bindkey -e
+
 # Shell options — http://zsh.sourceforge.net/Doc/Release/Options.html
 setopt ALWAYS_TO_END        # full completions move cursor to the end
 setopt AUTO_CD              # `dirname` is equivalent to `cd dirname`
