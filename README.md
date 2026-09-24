@@ -2,36 +2,41 @@
 
 Personal dotfiles managed with [mise](https://mise.jdx.dev/dotfiles.html).
 
-One repo configures shell, editor, terminal, Git and developer tools across
-four machine classes, and push-bootstraps a VPS fleet over SSH.
+One repo configures shell, editor, terminal, Git and developer tools on every
+machine, composed from layers, and push-bootstraps servers and a VyOS router
+over SSH.
 
-## Machine classes
+## Machine layers
 
 Everything is selected by `MISE_ENV`, which is **always** set — there is no
-"unset means default" case.
+"unset means default" case. Its value is a list of layers, pinned per machine
+in `~/.config/mise/miserc.toml`:
 
-| `MISE_ENV` | Machine |
+| Machine | `env` |
 |---|---|
-| `bryan` | Bryan's personal mac |
-| `work` | Bryan's work mac |
-| `irene` | Irene's personal mac |
-| `server` | VPS / VM |
+| Bryan's personal mac | `["desktop", "dev", "backup", "bryan"]` |
+| Bryan's work mac | `["desktop", "dev"]` |
+| Irene's personal mac | `["desktop", "backup", "irene"]` |
+| VPS / VM | `["server"]` |
+| VyOS router | `["vyos"]` |
 
-What each class gets:
+Each layer is one `.config/mise/config.<layer>.toml` holding a capability's
+tools, dotfiles and LaunchAgents together, so a tool can never reach a machine
+its config misses:
 
-| | `bryan` | `work` | `irene` | `server` |
-|---|:--:|:--:|:--:|:--:|
-| zsh, git, starship, nvim, ripgrep, uv, core CLI | ✅ | ✅ | ✅ | ✅ |
-| terminals (kitty, ghostty, wezterm) | ✅ | ✅ | ✅ | — |
-| window managers (aerospace, nehir) | ✅ | ✅ | ✅ | — |
-| television, herdr, Claude settings | ✅ | ✅ | ✅ | — |
-| k9s, kubectl, helm, kustomize, duckdb | ✅ | ✅ | — | — |
-| talosctl, cilium, supabase, kopia, agent tooling | ✅ | — | — | — |
-| antigravity-cli, kopia, rclone | — | — | ✅ | — |
+| Layer | Adds |
+|---|---|
+| base — `config.toml`, always | zsh, git, starship, nvim, bat, ripgrep, uv, core CLI |
+| `desktop` | terminals (kitty, ghostty, wezterm), window managers (aerospace, nehir), television, herdr, Claude settings, bun, node |
+| `dev` | kubectl, k9s, helm, kustomize, duckdb, hk, tokei |
+| `backup` | kopia, rclone, their exclude lists, the nightly LaunchAgent |
+| `bryan` | talosctl, cilium, supabase, gnupg, agent tooling, weekly self-update |
+| `irene` | antigravity-cli, weekly self-update |
+| `server` | no extra tools; dotfile history disabled |
+| `vyos` | vector and its config; router-only bootstrap |
 
-File-level selection lives in `[dotfiles]` `variants` in
-`.config/mise/config.toml`. Tool-level selection lives in
-`.config/mise/config.<class>.toml`.
+A new capability is a new layer file plus one word in the miserc of each
+machine that wants it — no per-entry `variants` lists.
 
 ## Bootstrap a new machine
 
@@ -45,10 +50,10 @@ committed; each machine sets its own.
 ```sh
 mkdir -p ~/.config/mise
 
-# 1. Machine class. Without this, only the 12 base tools load and every
-#    desktop dotfile is skipped.
+# 1. Machine layers, from the table above. Without this, only the base layer
+#    loads: no desktop tools, no desktop dotfiles. On a mac the shell says so.
 cat > ~/.config/mise/miserc.toml <<'EOF'
-env = ["bryan"]        # bryan | work | irene | server
+env = ["desktop", "dev", "backup", "bryan"]
 EOF
 
 # 2. Git identity, and any other per-machine path. Without the first two,
@@ -77,6 +82,18 @@ mise bootstrap dotfiles apply -f
 ```
 
 `-f` is needed on a machine that already has real files at those paths.
+
+### Moving an existing machine to layers
+
+A machine set up before layers has a single-class miserc (`env = ["work"]`).
+After pulling, it loads only the base layer until that line is rewritten per
+the table above, and a mac warns at every shell start until then. Rewrite it,
+then apply so the new layer files get linked into `~/.config/mise`:
+
+```sh
+$EDITOR ~/.config/mise/miserc.toml
+mise bootstrap dotfiles apply
+```
 
 ## Bootstrap the fleet
 
@@ -241,11 +258,15 @@ Source paths mirror their target exactly. `~/.config/nvim` comes from
 `.config/nvim`. No filename prefixes or suffixes, except `.tera` on templates.
 
 ```
-.config/mise/config.toml          # settings + [dotfiles] table + base tools
-.config/mise/config.bryan.toml    # per-class tools
-.config/mise/config.work.toml
+.config/mise/config.toml          # settings, base dotfiles + tools (every machine)
+.config/mise/config.desktop.toml  # layers: tools + dotfiles + agents per capability
+.config/mise/config.dev.toml
+.config/mise/config.backup.toml
+.config/mise/config.bryan.toml    # per-person additions
 .config/mise/config.irene.toml
-.config/mise/config.server.toml
+.config/mise/config.server.toml   # remote classes
+.config/mise/config.vyos.toml
+vyos/                             # router files, mirroring absolute paths
 .config/mise/tasks/preset/        # wrappers: `mise run preset:python`
 copier.yml                        # project template: questions + subdirectory
 .config/copier/python/            # template files (.jinja), per stack
@@ -284,8 +305,8 @@ symlinked — otherwise every plugin update or app exit dirties this repo. Use
 - Shell startup uses `ZDOTDIR=~/.config/zsh` from `.zshenv`.
 - `ipinfo` reads `$IPINFO_TOKEN`, supplied age-encrypted from
   `config.bryan.toml`. Add a secret with
-  `mise set -g --age-encrypt --prompt NAME`, then move the line into the class
-  config that needs it — see AGENTS.md.
+  `mise set -g --age-encrypt --prompt NAME`, then move the line into the layer
+  or machine config that needs it — see AGENTS.md.
 - One nvim config: `.config/nvim`, plugins via `vim.pack`. `v`, `vi` and `vim`
   all point at it.
 - Agent harness deployment stays separate: `bunx github:bryan824/kirin-pi apply`.

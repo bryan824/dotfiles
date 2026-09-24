@@ -1,32 +1,12 @@
-#: Bryan's personal mac. MISE_ENV=bryan
-#: Layers on top of config.toml.
+#: Bryan's personal mac: env = ["desktop", "dev", "backup", "bryan"].
+#: Only what this machine adds on top of its layers.
 
 [tools]
-# desktop
-bun = "latest"
-node = "latest"
-herdr = "latest"
-opencode = "latest"
-television = "latest"
-rtk = "latest"
-watchexec = "latest"
-
-# kubernetes / data
-duckdb = "latest"
-helm = "latest"
-k9s = "latest"
-kubectl = "latest"
-kustomize = "latest"
-hk = "latest"
-tokei = "latest"
-
-# personal-only
 "npm:agent-browser" = "latest"
 "npm:@earendil-works/pi-coding-agent" = "latest"
 claude-code = "latest"
 antigravity-cli = "latest"
 cilium-cli = "latest"
-"github:kopia/kopia" = "latest"
 # GnuPG is not in the mise registry and never will be: it is a source tarball
 # against its own library chain, not a release binary any of the download
 # backends can fetch. conda-forge ships a prebuilt one, hence the conda backend
@@ -38,7 +18,6 @@ cilium-cli = "latest"
 # pinentry-program line in ~/.gnupg/gpg-agent.conf to find this one.
 "conda:gnupg" = "latest"
 "conda:pinentry" = "latest"
-rclone = "latest"
 stylua = "latest"
 supabase = "latest"
 talosctl = "latest"
@@ -52,23 +31,14 @@ yazi = "latest"
 # command activates mise by absolute path before calling anything from it.
 # ---------------------------------------------------------------------------
 
-# Nightly kopia snapshot of $HOME, then an index-vs-storage blob check.
-# The work lives in the script so the pipeline inside it can run under
-# pipefail; see .local/bin/kopia-nightly.sh.
-[bootstrap.macos.launchd.agents.kopia-backup]
-program = "~/.local/bin/kopia-nightly.sh"
-start_calendar_interval = { hour = 2, minute = 0 }
-stdout_path = "~/Library/Logs/kopia-launchagent.out"
-stderr_path = "~/Library/Logs/kopia-launchagent.err"
-
 # Weekly self-update of everything not owned by a package manager already.
 # Same script the interactive `up` runs; see .local/bin/up.sh.
 #
-# Weekly, not nightly, and Sunday 04:00 on purpose. Unlike the kopia agent
-# above this one *writes* to every toolchain on PATH, so a run that lands
-# mid-week rebuilds the tools under whatever is being worked on. A failure here
-# is also not urgent -- nothing is lost, the next run retries -- so it gets no
-# notification, only the log below.
+# Weekly, not nightly, and Sunday 04:00 on purpose. Unlike the kopia agent in
+# config.backup.toml this one *writes* to every toolchain on PATH, so a run
+# that lands mid-week rebuilds the tools under whatever is being worked on. A
+# failure here is also not urgent -- nothing is lost, the next run retries --
+# so it gets no notification, only the log below.
 [bootstrap.macos.launchd.agents.self-update]
 program = "~/.local/bin/up.sh"
 start_calendar_interval = { weekday = 0, hour = 4, minute = 0 }

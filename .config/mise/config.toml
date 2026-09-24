@@ -1,11 +1,18 @@
 #: Global mise config. Managed by this repo; symlinked to ~/.config/mise/config.toml.
 #:
-#: Machine class is selected by MISE_ENV, which is ALWAYS set (never unset):
-#:   bryan  - Bryan's personal mac      work   - Bryan's work mac
-#:   irene  - Irene's personal mac      server - VPS / VM
+#: Every machine loads this file. What else it loads is set by MISE_ENV, which
+#: is ALWAYS set, from ~/.config/mise/miserc.toml (machine-local, never
+#: committed). Its value is a list of layers, each one a config.<layer>.toml
+#: here, applied left to right:
 #:
-#: Per-class tools live in config.<class>.toml. Per-machine secrets and identity
-#: live in ~/.config/mise/config.local.toml, which is NEVER committed.
+#:   desktop  macOS workstation: terminals, window managers, TUI/agent tools
+#:   dev      kubernetes, data and project tooling
+#:   backup   nightly kopia backup of $HOME
+#:   bryan / irene   what one person's machine adds on top
+#:   server / vyos   remote classes, reached by `mise bootstrap remote`
+#:
+#: Bryan's mac is  env = ["desktop", "dev", "backup", "bryan"].
+#: A layer file holds its tools, dotfiles and LaunchAgents together.
 
 [settings]
 experimental = true
@@ -45,10 +52,11 @@ package_manager = "bun"
 #     ~/.config/television opts back into a whole-directory symlink for exactly
 #     that reason, since cable channels get added often and nothing writes there.
 #
-# An entry carrying only `variants` and no mode key is silently dropped with
-# "no recognized operation", so those keep an explicit mode.
-#
-# `variants` filters inclusion by machine class. No variants = every machine.
+# Entries here reach every machine. Anything narrower goes in the layer file
+# that needs it (config.desktop.toml, ...), which only loads where miserc
+# lists that layer -- no `variants` lists to keep in sync. Do not reintroduce
+# them: an entry whose variants match two active layers is dropped with
+# "ambiguous dotfile variants, ignoring entry".
 # ---------------------------------------------------------------------------
 
 [dotfiles]
@@ -60,36 +68,16 @@ package_manager = "bun"
 "~/.config/git/ignore" = { mode = "symlink" }
 "~/.config/starship.toml" = { mode = "symlink" }
 
-# Body of the `up` function, and of bryan's dev.mise.self-update LaunchAgent.
-# No variants deliberately: the agent is macOS-only, but `up` is how every
-# class including server updates itself by hand.
+# Body of the `up` function, and of the dev.mise.self-update LaunchAgent that
+# bryan and irene declare. Every machine on purpose: the agent is macOS-only,
+# but `up` is how a server updates itself by hand too.
 "~/.local/bin/up.sh" = { mode = "symlink" }
 
 # mise's own config, so this repo manages the file you are reading. One entry
-# covers every config.<class>.toml, and a new class needs no table change.
+# covers every config.<layer>.toml, and a new layer needs no table change.
 # symlink-each leaves the unmanaged neighbours here alone: age.txt,
 # config.local.toml and miserc.toml are machine-local and never tracked.
 "~/.config/mise" = {}
-
-# --- desktops only (bryan / work / irene) ------------------------------------
-"~/.config/ghostty" = { mode = "symlink-each", variants = [{ profile = "bryan" }, { profile = "work" }, { profile = "irene" }] }
-"~/.config/wezterm" = { mode = "symlink-each", variants = [{ profile = "bryan" }, { profile = "work" }, { profile = "irene" }] }
-"~/.config/aerospace" = { mode = "symlink-each", variants = [{ profile = "bryan" }, { profile = "work" }, { profile = "irene" }] }
-"~/.config/nehir" = { mode = "symlink-each", variants = [{ profile = "bryan" }, { profile = "work" }, { profile = "irene" }] }
-"~/.config/television" = { mode = "symlink", variants = [{ profile = "bryan" }, { profile = "work" }, { profile = "irene" }] }
-
-# --- machines that run rclone / kopia backups (bryan / irene) -----------------
-# Both files follow the tools they configure. A config whose audience drifts
-# from its tool's is the bug that shipped twice here.
-"~/.rclone_excludes.txt" = { mode = "symlink", variants = [{ profile = "bryan" }, { profile = "irene" }] }
-
-# Kopia backup exclude list. Holds only exclude paths and no secrets.
-# Deployed to the classes that install kopia.
-"~/.kopiaignore" = { mode = "symlink", variants = [{ profile = "bryan" }, { profile = "irene" }] }
-
-# Driver for the dev.mise.kopia-backup LaunchAgent, so it follows the agent
-# rather than the tool: bryan and irene declare that agent.
-"~/.local/bin/kopia-nightly.sh" = { mode = "symlink", variants = [{ profile = "bryan" }, { profile = "irene" }] }
 
 # ---------------------------------------------------------------------------
 # Templates (.tera)
@@ -102,23 +90,6 @@ mode = "template"
 [dotfiles."~/.config/zsh/80_host.zsh"]
 source = "~/.dotfiles/.config/zsh/80_host.zsh.tera"
 mode = "template"
-
-[dotfiles."~/.claude/settings.json"]
-source = "~/.dotfiles/.claude/settings.json.tera"
-mode = "template"
-variants = [{ profile = "bryan" }, { profile = "work" }, { profile = "irene" }]
-
-[dotfiles."~/.config/kitty/launch.conf"]
-source = "~/.dotfiles/.config/kitty/launch.conf.tera"
-mode = "template"
-variants = [{ profile = "bryan" }, { profile = "work" }, { profile = "irene" }]
-
-# k9s rewrites config.yaml on exit (currentContext/currentCluster). Template
-# mode renders one-way, so its runtime scribbles never reach this repo.
-[dotfiles."~/.config/k9s/config.yaml"]
-source = "~/.dotfiles/.config/k9s/config.yaml.tera"
-mode = "template"
-variants = [{ profile = "bryan" }, { profile = "work" }]
 
 # ---------------------------------------------------------------------------
 # Directories holding a file their own tool rewrites at runtime.
@@ -137,30 +108,8 @@ exclude = ["nvim-pack-lock.json"]
 [dotfiles."~/.config/nvim/nvim-pack-lock.json"]
 mode = "copy"
 
-[dotfiles."~/.config/kitty"]
-mode = "symlink-each"
-exclude = ["launch.conf.tera", "current-theme.conf"]
-variants = [{ profile = "bryan" }, { profile = "work" }, { profile = "irene" }]
-
-# Written by the kitty `themes` kitten.
-[dotfiles."~/.config/kitty/current-theme.conf"]
-mode = "copy"
-variants = [{ profile = "bryan" }, { profile = "work" }, { profile = "irene" }]
-
-[dotfiles."~/.config/k9s"]
-mode = "symlink-each"
-exclude = ["config.yaml.tera"]
-variants = [{ profile = "bryan" }, { profile = "work" }]
-
-# herdr writes session.json, .plugins.lock and a socket next to its config.
-# symlink-each keeps ~/.config/herdr a real directory, so those land there
-# instead of in this repo.
-[dotfiles."~/.config/herdr"]
-mode = "symlink-each"
-variants = [{ profile = "bryan" }, { profile = "work" }, { profile = "irene" }]
-
 # ---------------------------------------------------------------------------
-# Tools every machine gets. Class-specific tools live in config.<class>.toml.
+# Tools every machine gets. Layer-specific tools live in config.<layer>.toml.
 # ---------------------------------------------------------------------------
 
 [tools]

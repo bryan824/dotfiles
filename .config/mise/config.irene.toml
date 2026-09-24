@@ -1,31 +1,11 @@
-#: Irene's personal mac. MISE_ENV=irene
-#: Layers on top of config.toml.
+#: Irene's personal mac: env = ["desktop", "backup", "irene"].
+#: Only what this machine adds on top of its layers.
 
 [tools]
-# desktop
-bun = "latest"
-node = "latest"
-herdr = "latest"
-opencode = "latest"
-television = "latest"
-rtk = "latest"
-watchexec = "latest"
-
-# backup + assistant
-"github:kopia/kopia" = "latest"
-rclone = "latest"
 antigravity-cli = "latest"
 
-# ---------------------------------------------------------------------------
-# LaunchAgents. Same pair bryan runs; the reasoning for both schedules is
+# Same self-update agent bryan runs; the reasoning for its schedule is
 # documented once, in config.bryan.toml.
-# ---------------------------------------------------------------------------
-[bootstrap.macos.launchd.agents.kopia-backup]
-program = "~/.local/bin/kopia-nightly.sh"
-start_calendar_interval = { hour = 2, minute = 0 }
-stdout_path = "~/Library/Logs/kopia-launchagent.out"
-stderr_path = "~/Library/Logs/kopia-launchagent.err"
-
 [bootstrap.macos.launchd.agents.self-update]
 program = "~/.local/bin/up.sh"
 start_calendar_interval = { weekday = 0, hour = 4, minute = 0 }

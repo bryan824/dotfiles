@@ -1,0 +1,22 @@
+#: Layer: developer workstation -- kubernetes, data and project tooling.
+#: Loaded where miserc.toml lists "dev". Layers on top of config.toml.
+
+[tools]
+duckdb = "latest"
+helm = "latest"
+k9s = "latest"
+kubectl = "latest"
+kustomize = "latest"
+hk = "latest"
+tokei = "latest"
+
+[dotfiles."~/.config/k9s"]
+mode = "symlink-each"
+exclude = ["config.yaml.tera"]
+
+# k9s rewrites config.yaml on exit (currentContext/currentCluster), and does
+# not expand ~ in screenDumpDir. Template mode renders one-way, so its runtime
+# scribbles never reach this repo.
+[dotfiles."~/.config/k9s/config.yaml"]
+source = "~/.dotfiles/.config/k9s/config.yaml.tera"
+mode = "template"

@@ -16,36 +16,65 @@ Deployment mode decides whether editing the live file reaches this repo. Check
 
 ## Rule: MISE_ENV is always set
 
-Four classes: `bryan`, `work`, `irene`, `server`. Nothing is designed to work
-with `MISE_ENV` unset — unset silently behaves like a stripped-down `server`,
-loading 12 tools instead of 37 and skipping every desktop dotfile.
+Its value is a list of layers — capabilities `desktop`, `dev`, `backup`, then
+a person (`bryan`, `irene`) — or a remote class (`server`, `vyos`). README.md
+has the per-machine table. Nothing is designed to work with `MISE_ENV` unset —
+unset silently behaves like a stripped-down `server`, loading only the base
+tools and skipping every desktop dotfile.
 
-The class is pinned per machine in `~/.config/mise/miserc.toml`, which is not
+The list is pinned per machine in `~/.config/mise/miserc.toml`, which is not
 managed by this repo:
 
 ```toml
-env = ["bryan"]
+env = ["desktop", "dev", "backup", "bryan"]
 ```
 
 Do not set it from a shell rc instead. `~/.zshenv` and `~/.config/zsh/*` are
 symlinks into this repo, so an `export` there commits a machine-specific value.
 
-When testing what a class deploys, set it explicitly:
+When testing what a machine deploys, set its list explicitly:
 
 ```sh
-MISE_ENV=server mise bootstrap dotfiles status
+MISE_ENV=desktop,dev mise bootstrap dotfiles status
 ```
 
-Check every class you might have affected, not just this machine's.
+Check every machine you might have affected, not just this one.
 
 **A template must never branch on `get_env(name="MISE_ENV")`.** mise resolves
-the class from `miserc.toml`, but Tera reads the process environment, which an
+the layers from `miserc.toml`, but Tera reads the process environment, which an
 apply from a LaunchAgent, cron job or agent shell does not have — so the
 template silently renders as if unclassed. `starship.toml.tera` lost its
 `$gcloud` segment that way, and `status` disagreed with `apply` until it was
 found. Gate on the fact (`{% if vars.x is defined %}`), per the placement rule
 below; `$gcloud` needed no gate at all, since starship renders it empty where
 gcloud is unconfigured.
+
+## Rule: a layer owns its tools, dotfiles and agents
+
+A capability's `[tools]`, `[dotfiles]` and LaunchAgents go together in its
+`config.<layer>.toml`, which loads only where miserc lists that layer. Before
+layers, `[dotfiles]` filtered entries with `variants = [{ profile = "bryan" },
+...]` lists kept in step by hand with each class file's tool list — and a
+config reaching a machine its tool did not was the bug that shipped twice.
+
+Do not bring `variants` back as a membership filter. They select *one*
+alternative, so an entry whose variants match two active layers is dropped:
+
+```
+mise WARN  [dotfiles]."~/.config/ghostty": ambiguous dotfile variants, ignoring entry
+```
+
+That is exactly what `env = ["desktop", "dev"]` does to an entry listing both.
+
+A new layer file is itself a dotfile. `~/.config/mise` is `symlink-each`, so
+mise does not see `config.<layer>.toml` until an apply links it. Create the
+layer, apply, and only then move tools out of the file that declared them —
+in the other order they drop off PATH mid-session, because the file that now
+declares them is not loaded yet.
+
+Prove a restructure identical rather than eyeballing it: for each machine's
+layer list, diff `mise bootstrap dotfiles status`, `mise ls --current` and
+`mise bootstrap macos launchd-agents status` before and after.
 
 ## Rule: a `[dotfiles]` entry needs an operation, or it is silently dropped
 
@@ -64,8 +93,8 @@ table with `variants` and nothing else is **not**. Give it an explicit
 After editing the table, confirm the entry count actually changed:
 
 ```sh
-for e in bryan work irene server; do
-  printf '%-7s %s\n' "$e" "$(MISE_ENV=$e mise bootstrap dotfiles status 2>/dev/null | grep -cE '^~/')"
+for e in desktop,dev,backup,bryan desktop,dev desktop,backup,irene server vyos; do
+  printf '%-26s %s\n' "$e" "$(MISE_ENV=$e mise bootstrap dotfiles status 2>/dev/null | grep -cE '^~/')"
 done
 ```
 
@@ -82,7 +111,7 @@ in it are a parse error, not a no-op:
 | ^ invalid key-value pair, expected key
 ```
 
-Per-class differences go in `.config/mise/config.<class>.toml`, which mise
+Per-layer differences go in `.config/mise/config.<layer>.toml`, which mise
 layers over the base. That is the only mechanism — there is no single-file
 conditional for `[tools]`.
 
@@ -347,7 +376,7 @@ changes go out with `mise bootstrap remote`, always previewed with `--dry-run`.
 
 No credential is ever committed in the clear. There are two places for one:
 
-**Shared across machines** — age-encrypted inline in a class config:
+**Shared across machines** — age-encrypted inline in a layer config:
 
 ```sh
 mise set -g --age-encrypt --prompt SOME_TOKEN
@@ -382,14 +411,14 @@ this repo entirely. See the placement rule below for what belongs there.
 
 Two placement traps:
 
-- `mise set -g` always writes to `config.toml`, which **every** class loads.
+- `mise set -g` always writes to `config.toml`, which **every** machine loads.
   A machine without the key then fails outright, because `age.strict` defaults
-  to true. For a secret only some classes need, generate it with `-g` and move
-  the line into `config.<class>.toml` by hand.
+  to true. For a secret only some machines need, generate it with `-g` and
+  move the line into the layer or person file (`config.<layer>.toml`) by hand.
 
-  Do **not** reach for `mise set -g -E <class>`. It does not write the global
-  overlay; it drops a `mise.<class>.toml` *project* config in the current
-  directory. Run from `~`, that file then loads for that class on every
+  Do **not** reach for `mise set -g -E <layer>`. It does not write the global
+  overlay; it drops a `mise.<layer>.toml` *project* config in the current
+  directory. Run from `~`, that file then loads for that layer on every
   command, silently shadowing the real config. Check for strays with
   `mise config ls`, which lists every file actually loaded.
 - `[vars]` and `[env]` are not interchangeable. `[vars]` is readable only by
@@ -400,19 +429,19 @@ mise's `[history.encryption]` is a different feature — it encrypts the history
 stream into a separate repository with its own origin, not per-value inline.
 Do not reach for it without deciding deliberately.
 
-## Rule: per-machine values belong in `config.local.toml`, not a class config
+## Rule: per-machine values belong in `config.local.toml`, not a layer config
 
 Four places a value can live, and the axis that decides:
 
 | Value varies by | Goes in |
 |---|---|
 | nothing | `config.toml` |
-| machine class | `config.<class>.toml` |
+| capability or person | `config.<layer>.toml` |
 | **the individual machine** | `~/.config/mise/config.local.toml` (uncommitted) |
-| being a secret shared across machines | age-encrypted in a class config |
+| being a secret shared across machines | age-encrypted in a layer config |
 
-The trap is using the class axis for a machine fact because there happens to be
-one machine in that class today. `80_host.zsh.tera` did exactly that: it gated
+The trap is using a layer for a machine fact because only one machine lists
+that layer today. `80_host.zsh.tera` did exactly that: it gated
 a `TALOSCONFIG` path on `MISE_ENV == "bryan"`, so a second `bryan` machine
 would export a path to a checkout it does not have — and the personal directory
 layout sat in a public repo. It now reads `vars.talosconfig` and renders empty

@@ -1,0 +1,48 @@
+#: Layer: macOS workstation. Loaded where miserc.toml lists "desktop".
+#: Layers on top of config.toml; see the layer table in README.md.
+#
+# Everything a GUI machine needs and a server must never get: terminals, window
+# managers, the TUI/agent tools that run inside them, and their configs. Tools
+# and the dotfiles that configure them live in the same file, so a tool's
+# audience and its config's audience cannot drift apart -- the bug that shipped
+# twice here while [dotfiles] carried hand-maintained `variants` lists.
+
+[tools]
+bun = "latest"
+node = "latest"
+herdr = "latest"
+opencode = "latest"
+television = "latest"
+rtk = "latest"
+watchexec = "latest"
+
+[dotfiles]
+"~/.config/ghostty" = {}
+"~/.config/wezterm" = {}
+"~/.config/aerospace" = {}
+"~/.config/nehir" = {}
+# Whole-directory link, not symlink-each: cable channels get added often, and
+# symlink-each needs an apply before a new file appears at the target.
+"~/.config/television" = { mode = "symlink" }
+
+# herdr writes session.json, .plugins.lock and a socket next to its config.
+# symlink-each keeps ~/.config/herdr a real directory, so those land there
+# instead of in this repo.
+"~/.config/herdr" = {}
+
+[dotfiles."~/.config/kitty"]
+mode = "symlink-each"
+exclude = ["launch.conf.tera", "current-theme.conf"]
+
+# kitty does not expand ~ in `launch`, hence a template.
+[dotfiles."~/.config/kitty/launch.conf"]
+source = "~/.dotfiles/.config/kitty/launch.conf.tera"
+mode = "template"
+
+# Written by the kitty `themes` kitten.
+[dotfiles."~/.config/kitty/current-theme.conf"]
+mode = "copy"
+
+[dotfiles."~/.claude/settings.json"]
+source = "~/.dotfiles/.claude/settings.json.tera"
+mode = "template"
