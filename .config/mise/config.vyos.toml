@@ -90,10 +90,10 @@ vector = "latest"
 # hides it -- delete then recreate, net zero -- but `--only files` leaves the
 # path missing and every shim unresolvable again.
 #
-# Note the checkout is of origin/main, which does not carry this file (it is
-# uncommitted), so MISE_ENV=vyos is not available on the router and only
-# config.toml's 14 base tools resolve by name. vector is not among them and
-# does not need to be -- its unit invokes an absolute path.
+# The router's checkout tracks origin/main, so it sees a change here only once
+# it is pushed. Its shells resolve this file's tools by name only where the
+# router's own miserc lists "vyos"; vector does not depend on that -- its unit
+# invokes an absolute path.
 
 # The checkout the [dotfiles] symlinks resolve against. Also restores what a
 # [bootstrap.directories] entry in this file destroyed: bryan's ~/.config had a

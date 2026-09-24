@@ -248,9 +248,6 @@ and pin the URL to a commit SHA in any repo that must not move.
 Hooks stay incremental — staged files only. `mise run check` remains the
 whole-project gate, and it is the one CI runs.
 
-Python needs no activation step: `python.uv_venv_auto = "source"` in
-`config.toml` activates a project's `.venv` on `cd`. That replaced direnv and
-its `layout_uv`, which this repo used to carry.
 
 ## Layout
 
@@ -285,8 +282,7 @@ Rendered, not linked. Editing the live file does **not** reach this repo.
 | Target | Why |
 |---|---|
 | `.config/git/config` | `vars.git_name` / `vars.git_email` |
-| `.config/starship.toml` | gcloud module on `bryan` + `work` |
-| `.config/zsh/80_host.zsh` | `TALOSCONFIG` on `bryan` |
+| `.config/zsh/80_host.zsh` | `TALOSCONFIG`, when `vars.talosconfig` is set |
 | `.claude/settings.json` | strict JSON, needs absolute `$HOME` |
 | `.config/kitty/launch.conf` | kitty does not expand `~` in `launch` |
 | `.config/k9s/config.yaml` | k9s does not expand `~` in `screenDumpDir` |
