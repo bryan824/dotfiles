@@ -1,10 +1,11 @@
 #!/bin/zsh
 # Every self-update/upgrade in one shot. Two callers: the `up` function in
 # .config/zsh/50_functions.zsh, and the dev.mise.self-update LaunchAgent
-# declared in .config/mise/config.bryan.toml.
+# declared in .config/mise/config.{bryan,irene}.toml.
 #
 # Steps whose tool is missing are skipped. Tools installed *by* mise (bun,
-# rustup, node…) are deliberately absent -- `mise upgrade` already owns them.
+# node…) are deliberately absent -- `mise upgrade` already owns them. rustup is
+# not one of them: it lives standalone in ~/.cargo/bin, so it gets a step.
 #
 # No `set -e`: the point of the loop is that one failing step does not stop the
 # rest. Each failure is reported and the run continues.
@@ -16,22 +17,21 @@
 # missed path means the update quietly stops happening rather than erroring.
 set -uo pipefail
 
-# zim, because `zimfw` is a shell function rather than a binary. Sourcing it
-# again under the interactive caller is harmless -- this is a subprocess.
-#
-# Before mise for the same reason .zshrc loads 20 before 30: zim owns compinit,
-# and `mise activate` runs its own `compinit -i` when compdef is undefined.
-# Reversed, zim's completion module sees compdef already defined and warns
-# "completion was already initialized before completion module".
+# `zimfw` is a shell function, not a binary, and this is the whole of what
+# zim's generated init.zsh defines for it. Sourcing all of init.zsh would load
+# every module too, for nothing.
 : ${ZIM_HOME:=${ZDOTDIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/zsh}/.zim}
-[[ -e ${ZIM_HOME}/init.zsh ]] && source ${ZIM_HOME}/init.zsh
+[[ -e ${ZIM_HOME}/zimfw.zsh ]] && zimfw() { source ${ZIM_HOME}/zimfw.zsh "$@" }
 
 # mise, by absolute path since nothing has activated it.
 eval "$("$HOME/.local/bin/mise" activate zsh)"
 
-# gcloud, which is not a mise tool and lives off PATH. Mirrors 40_tools.zsh.
-gcloud_bin=${XDG_DATA_HOME:-${HOME}/.local/share}/google-cloud-sdk/bin
-[[ -d $gcloud_bin ]] && path=($gcloud_bin $path)
+# The toolchains that live off mise, mirroring 00_environment.zsh and
+# 40_tools.zsh. launchd's PATH has neither. Without ~/.cargo/bin, `rustup`
+# resolves only to mise's rust shim, which has no version outside a project
+# that pins rust and nothing left to fall back to -- so the rustup step and the
+# _cargo/_rustup completions were silently skipped on every scheduled run.
+path=(${HOME}/.cargo/bin(N-/) ${XDG_DATA_HOME:-${HOME}/.local/share}/google-cloud-sdk/bin(N-/) $path)
 
 local -a steps=(
   'mise self-update -y'
@@ -39,6 +39,7 @@ local -a steps=(
   'zimfw upgrade'
   'zimfw update'
   'uv tool upgrade --all'
+  'rustup update'
   # pi itself is a mise npm tool, upgraded above; its extensions are not.
   'pi update --extensions'
   'gcloud components update --quiet'
