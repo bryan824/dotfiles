@@ -30,8 +30,8 @@ its config misses:
 | `desktop` | terminals (kitty, ghostty, wezterm), window managers (aerospace, nehir), television, herdr, Claude settings, bun, node |
 | `dev` | kubectl, k9s, helm, kustomize, duckdb, hk, tokei |
 | `backup` | kopia, rclone, their exclude lists, the nightly LaunchAgent |
-| `bryan` | talosctl, cilium, supabase, gnupg, agent tooling, weekly self-update |
-| `irene` | antigravity-cli, weekly self-update |
+| `bryan` | talosctl, cilium, supabase, gnupg, agent tooling, Syncthing service, weekly self-update |
+| `irene` | antigravity-cli, Syncthing service, weekly self-update |
 | `server` | no extra tools; dotfile history disabled |
 | `vyos` | vector and its config; router-only bootstrap |
 
@@ -156,6 +156,23 @@ mise bootstrap dotfiles apply -f ~/.pi/agent/settings.json
 
 Before applying on another Bryan machine, preserve any local settings you
 want to keep: `-f` replaces the existing file with the repo-backed link.
+
+### Syncthing service (personal Macs)
+
+The `bryan` and `irene` layers install Syncthing and declare a login
+LaunchAgent. Adding the configuration does not start it; preview and apply:
+
+```sh
+mise bootstrap macos launchd-agents apply --dry-run
+mise bootstrap macos launchd-agents apply
+mise bootstrap macos launchd-agents status
+```
+
+The agent runs while logged in and awake, restarts after exits, and resolves
+the current mise-managed binary at each start. Syncthing's own restart and
+auto-upgrade mechanisms are disabled: launchd handles restarts and mise handles
+upgrades. It does not open a browser; visit http://localhost:8384 manually.
+Logs are in `~/Library/Logs/syncthing-launchagent.{out,err}`.
 
 ## New projects
 

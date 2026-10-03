@@ -3,6 +3,7 @@
 
 [tools]
 antigravity-cli = "latest"
+syncthing = "latest"
 
 # Same self-update agent bryan runs; the reasoning for its schedule is
 # documented once, in config.bryan.toml.
@@ -11,3 +12,15 @@ program = "~/.local/bin/up.sh"
 start_calendar_interval = { weekday = 0, hour = 4, minute = 0 }
 stdout_path = "~/Library/Logs/up-launchagent.out"
 stderr_path = "~/Library/Logs/up-launchagent.err"
+
+# Start at login and let launchd own restarts; mise owns binary upgrades.
+# Resolve the current tool from home, without relying on shell activation.
+[bootstrap.macos.launchd.agents.syncthing]
+program = "~/.local/bin/mise"
+args = ["exec", "--", "syncthing", "serve", "--no-browser", "--no-restart", "--no-upgrade"]
+working_directory = "~"
+run_at_load = true
+keep_alive = true
+process_type = "Background"
+stdout_path = "~/Library/Logs/syncthing-launchagent.out"
+stderr_path = "~/Library/Logs/syncthing-launchagent.err"
