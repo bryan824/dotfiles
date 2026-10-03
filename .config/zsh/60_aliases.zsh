@@ -8,6 +8,8 @@ alias rm='rm -vI'
 
 # Not an alias: arguments land after the last word, so `du somedir` would have
 # expanded to `du -d 1 -h | sort -h somedir` and failed with "sort: Is a directory".
+# Clear an inherited alias before parsing the function (also safe on reload).
+unalias du 2>/dev/null || true
 du() { command du -d 1 -h "$@" | sort -h; }
 
 if [[ $OSTYPE == darwin* ]]; then

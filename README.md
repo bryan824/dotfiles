@@ -299,6 +299,8 @@ symlinked — otherwise every plugin update or app exit dirties this repo. Use
 ## Notes
 
 - Shell startup uses `ZDOTDIR=~/.config/zsh` from `.zshenv`.
+- Intel Macs use fd `10.3.0`, the last release tested upstream on that
+  platform; Apple Silicon and other operating systems keep `latest`.
 - `ipinfo` reads `$IPINFO_TOKEN`, supplied age-encrypted from
   `config.bryan.toml`. Add a secret with
   `mise set -g --age-encrypt --prompt NAME`, then move the line into the layer
