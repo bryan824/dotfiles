@@ -9,3 +9,11 @@
 !.claude/
 .claude/*
 !.claude/settings.json.tera
+
+# Pi settings are a dotfile source, not project scratch. Keep everything else
+# under .pi ignored, especially credentials and sessions.
+!/.pi/
+/.pi/*
+!/.pi/agent/
+/.pi/agent/*
+!/.pi/agent/settings.json

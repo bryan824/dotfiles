@@ -25,6 +25,11 @@ yazi = "latest"
 yt-dlp = "latest"
 ffmpeg = "latest"
 
+# Pi writes through this file symlink, so its settings changes reach the repo.
+# Manage only settings.json; credentials, sessions and caches stay machine-local.
+[dotfiles."~/.pi/agent/settings.json"]
+mode = "symlink"
+
 # ---------------------------------------------------------------------------
 # LaunchAgents. Written to ~/Library/LaunchAgents/dev.mise.<name>.plist and
 # loaded only by an explicit `mise bootstrap macos launchd-agents apply`.

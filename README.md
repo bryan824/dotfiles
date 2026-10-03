@@ -139,6 +139,24 @@ mise bootstrap dotfiles add --changed   # pull copy-mode edits back into the rep
 Most files are symlinked, so editing the live path edits this repo directly —
 no capture step. The exceptions are listed below.
 
+### Pi settings (Bryan layer)
+
+`~/.pi/agent/settings.json` is a single-file symlink to
+`.pi/agent/settings.json` in this repo. Pi writes through it, so changing
+settings or packages in Pi changes the repo directly; no capture step is
+needed. Review the Git diff before committing. Credentials, sessions and
+other agent files are not managed here.
+
+To adopt the existing settings file, preview and apply only this target:
+
+```sh
+mise bootstrap dotfiles apply -f --dry-run ~/.pi/agent/settings.json
+mise bootstrap dotfiles apply -f ~/.pi/agent/settings.json
+```
+
+Before applying on another Bryan machine, preserve any local settings you
+want to keep: `-f` replaces the existing file with the repo-backed link.
+
 ## New projects
 
 This repo is also a [copier](https://copier.readthedocs.io) template. `copier.yml`

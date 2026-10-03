@@ -1,0 +1,30 @@
+{
+  "lastChangelogVersion": "1.0.0",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-6.1-sol",
+  "defaultThinkingLevel": "high",
+  "npmCommand": [
+    "mise",
+    "exec",
+    "node@26",
+    "--",
+    "npm"
+  ],
+  "packages": [
+    "npm:pi-context-usage",
+    "npm:pi-cache-graph",
+    "npm:@eko24ive/pi-ask",
+    "npm:pi-codex-goal",
+    "npm:pi-powerline-footer",
+    "npm:pi-agent-browser-native",
+    "npm:pi-rtk-optimizer",
+    "npm:@ff-labs/pi-fff",
+    "npm:@cnife/pi-simple-plannotator",
+    "npm:pi-web-access",
+    "npm:pi-loadout",
+    "git:github.com/DietrichGebert/ponytail",
+    "npm:pi-subagents",
+    "git:github.com/bryan824/kirin-pi"
+  ],
+  "theme": "dark"
+}
