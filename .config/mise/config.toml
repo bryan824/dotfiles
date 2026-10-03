@@ -70,7 +70,7 @@ package_manager = "bun"
 "~/.config/starship.toml" = { mode = "symlink" }
 
 # Body of the `up` function, and of the dev.mise.self-update LaunchAgent that
-# bryan and irene declare. Every machine on purpose: the agent is macOS-only,
+# bryan declares. Every machine on purpose: the agent is macOS-only,
 # but `up` is how a server updates itself by hand too.
 "~/.local/bin/up.sh" = { mode = "symlink" }
 

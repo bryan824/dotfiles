@@ -1,7 +1,7 @@
 #!/bin/zsh
 # Every self-update/upgrade in one shot. Two callers: the `up` function in
 # .config/zsh/50_functions.zsh, and the dev.mise.self-update LaunchAgent
-# declared in .config/mise/config.{bryan,irene}.toml.
+# declared in .config/mise/config.bryan.toml.
 #
 # Steps whose tool is missing are skipped. Tools installed *by* mise (bun,
 # node…) are deliberately absent -- `mise upgrade` already owns them. rustup is

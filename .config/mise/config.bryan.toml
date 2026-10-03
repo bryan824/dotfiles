@@ -24,7 +24,8 @@ talosctl = "latest"
 yazi = "latest"
 yt-dlp = "latest"
 ffmpeg = "latest"
-syncthing = "latest"
+# Explicit backend: older mise releases do not have the syncthing shorthand.
+"aqua:syncthing/syncthing" = "latest"
 
 # Pi writes through this file symlink, so its settings changes reach the repo.
 # Manage only settings.json; credentials, sessions and caches stay machine-local.
@@ -61,7 +62,6 @@ args = ["exec", "--", "syncthing", "serve", "--no-browser", "--no-restart", "--n
 working_directory = "~"
 run_at_load = true
 keep_alive = true
-process_type = "Background"
 stdout_path = "~/Library/Logs/syncthing-launchagent.out"
 stderr_path = "~/Library/Logs/syncthing-launchagent.err"
 

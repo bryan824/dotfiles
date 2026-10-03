@@ -31,7 +31,7 @@ its config misses:
 | `dev` | kubectl, k9s, helm, kustomize, duckdb, hk, tokei |
 | `backup` | kopia, rclone, their exclude lists, the nightly LaunchAgent |
 | `bryan` | talosctl, cilium, supabase, gnupg, agent tooling, Syncthing service, weekly self-update |
-| `irene` | antigravity-cli, Syncthing service, weekly self-update |
+| `irene` | antigravity-cli, Syncthing service; no scheduled self-update |
 | `server` | no extra tools; dotfile history disabled |
 | `vyos` | vector and its config; router-only bootstrap |
 
@@ -40,9 +40,15 @@ machine that wants it — no per-entry `variants` lists.
 
 ## Bootstrap a new machine
 
+On a version-controlled workstation:
+
 ```sh
 git clone https://github.com/bryan824/dotfiles.git ~/.dotfiles
 ```
+
+Irene instead receives a **files-only** `~/.dotfiles` directory: copy the
+files without `.git`, rather than cloning or pulling. See the one-way mirror
+setup below. The `irene` layer disables mise history as well.
 
 **Write both machine-local files before applying anything.** Neither is
 committed; each machine sets its own.
@@ -86,8 +92,9 @@ mise bootstrap dotfiles apply -f
 ### Moving an existing machine to layers
 
 A machine set up before layers has a single-class miserc (`env = ["work"]`).
-After pulling, it loads only the base layer until that line is rewritten per
-the table above, and a mac warns at every shell start until then. Rewrite it,
+After receiving updated files, it loads only the base layer until that line
+is rewritten per the table above, and a mac warns at every shell start until
+then. Rewrite it,
 then apply so the new layer files get linked into `~/.config/mise`:
 
 ```sh
@@ -159,10 +166,12 @@ want to keep: `-f` replaces the existing file with the repo-backed link.
 
 ### Syncthing service (personal Macs)
 
-The `bryan` and `irene` layers install Syncthing and declare a login
-LaunchAgent. Adding the configuration does not start it; preview and apply:
+The `bryan` and `irene` layers declare Syncthing and a login LaunchAgent.
+Adding or receiving the configuration does not install tools or start agents;
+install the declared tools, then preview and apply as the logged-in user:
 
 ```sh
+mise install
 mise bootstrap macos launchd-agents apply --dry-run
 mise bootstrap macos launchd-agents apply
 mise bootstrap macos launchd-agents status
@@ -173,6 +182,40 @@ the current mise-managed binary at each start. Syncthing's own restart and
 auto-upgrade mechanisms are disabled: launchd handles restarts and mise handles
 upgrades. It does not open a browser; visit http://localhost:8384 manually.
 Logs are in `~/Library/Logs/syncthing-launchagent.{out,err}`.
+
+### Irene: one-way files-only mirror
+
+The source workstation owns Git. Irene's `~/.dotfiles` has no `.git` and
+receives file updates, currently by SCP. Do not run `git pull`, `git init` or
+`mise bootstrap dotfiles add --changed` there; make source changes on the
+version-controlled workstation instead.
+
+For future Syncthing setup (not enabled by these dotfiles):
+
+1. Pair the Macs and share the same folder ID, with `~/.dotfiles` as the path
+   on each Mac.
+2. Set the source folder to **Send Only** and Irene's folder to
+   **Receive Only**, not the default Send & Receive.
+3. Before the first sync, add `/.git` to the folder's ignore patterns on
+   **both** Macs. This ignores the directory and its contents, not just Git
+   working files. `.stignore` is device-local and is never synced, so configure
+   both copies independently. Keep machine-local credentials and device IDs
+   out of this repo.
+4. After files arrive, preview and apply with mise on Irene's Mac. Syncthing
+   transfers files; it does not render templates, create new deployment links,
+   install tools or load LaunchAgents:
+
+   ```sh
+   mise bootstrap dotfiles diff
+   mise bootstrap dotfiles apply
+   mise install
+   mise bootstrap macos launchd-agents apply --dry-run
+   mise bootstrap macos launchd-agents apply
+   ```
+
+Do not overwrite source changes from Irene. If Receive Only reports local
+changes, review them before using **Revert Local Changes**, which deletes or
+replaces those edits.
 
 ## New projects
 
