@@ -22,6 +22,8 @@ stylua = "latest"
 supabase = "latest"
 talosctl = "latest"
 yazi = "latest"
+yt-dlp = "latest"
+ffmpeg = "latest"
 
 # ---------------------------------------------------------------------------
 # LaunchAgents. Written to ~/Library/LaunchAgents/dev.mise.<name>.plist and
