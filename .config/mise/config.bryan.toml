@@ -7,6 +7,7 @@
 claude-code = "latest"
 antigravity-cli = "latest"
 cilium-cli = "latest"
+go = "latest"
 # GnuPG is not in the mise registry and never will be: it is a source tarball
 # against its own library chain, not a release binary any of the download
 # backends can fetch. conda-forge ships a prebuilt one, hence the conda backend
