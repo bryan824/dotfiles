@@ -1,0 +1,7 @@
+# Exclude Node.js modules
+**/node_modules/**
+
+# Exclude Python virtual environments
+**/venv/**
+**/.venv/**
+**/env/**

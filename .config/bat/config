@@ -1,0 +1,11 @@
+# Read by every bat invocation -- the `cat` alias, television and fzf previews,
+# anything else that shells out to bat -- rather than only the alias, which is
+# where these flags used to live.
+#
+# bat asks the terminal for its background and picks the matching theme, so
+# output follows macOS light/dark in any terminal that answers. Coldark ships
+# the pair.
+--theme-dark="Coldark-Dark"
+--theme-light="Coldark-Cold"
+--italic-text=always
+--style="numbers,changes,header"

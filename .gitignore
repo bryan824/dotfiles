@@ -1,0 +1,8 @@
+# Runtime artifacts that tools create inside symlinked config directories.
+# The live path IS this repo, so anything a daemon drops lands here.
+*.sock
+.DS_Store
+
+# Agent settings, credentials and sessions stay local, not in this repo.
+/.claude/
+/.pi/

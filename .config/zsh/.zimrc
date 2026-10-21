@@ -1,0 +1,19 @@
+# Terminal keys via terminfo (Home/End/Delete/Ctrl-arrows, with application
+# mode so they are reliable), ^X^E to edit the line in $EDITOR, Shift-Tab back
+# through menus, Esc-. for the last word. Keymap-agnostic; 10_options.zsh pins
+# emacs before this loads.
+zmodule input
+zmodule mroth/evalcache
+zmodule xvoland/Extract --source extract.sh --cmd 'alias x="extract"'
+# zmodule romkatv/powerlevel10k
+# zmodule Aloxaf/fzf-tab
+# zmodule fzf
+zmodule romkatv/zsh-defer -d
+
+zmodule zsh-users/zsh-completions --fpath src
+zmodule completion -d  # initialized by 25_completion.zsh instead; see that file
+
+# Deferred ZLE plugins — bindings are set in .zshrc after load
+zmodule zsh-users/zsh-history-substring-search -d
+zmodule zsh-users/zsh-syntax-highlighting -d
+zmodule zsh-users/zsh-autosuggestions -d

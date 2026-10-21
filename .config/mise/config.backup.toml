@@ -1,0 +1,28 @@
+#: Layer: nightly kopia backup of $HOME over rclone.
+#: Loaded where miserc.toml lists "backup". Layers on top of config.toml.
+#
+# The tool, its exclude lists, the script and the LaunchAgent that runs it all
+# key off this one layer name, so none of them can reach a machine the others
+# miss.
+
+[tools]
+"github:kopia/kopia" = "latest"
+rclone = "latest"
+
+[dotfiles]
+"~/.rclone_excludes.txt" = { mode = "symlink" }
+# Holds only exclude paths and no secrets.
+"~/.kopiaignore" = { mode = "symlink" }
+"~/.local/bin/kopia-nightly.sh" = { mode = "symlink" }
+
+# Written to ~/Library/LaunchAgents/dev.mise.kopia-backup.plist and loaded only
+# by an explicit `mise bootstrap macos launchd-agents apply`.
+#
+# Nightly kopia snapshot of $HOME, then an index-vs-storage blob check. The
+# work lives in the script so the pipeline inside it can run under pipefail;
+# see .local/bin/kopia-nightly.sh.
+[bootstrap.macos.launchd.agents.kopia-backup]
+program = "~/.local/bin/kopia-nightly.sh"
+start_calendar_interval = { hour = 2, minute = 0 }
+stdout_path = "~/Library/Logs/kopia-launchagent.out"
+stderr_path = "~/Library/Logs/kopia-launchagent.err"

@@ -1,0 +1,48 @@
+# Copier template for new projects. Lives at the root of this repo on purpose:
+# copier reads a template's version from the git repo the copier.yml sits in, so
+# a template kept in a subdirectory records no `_commit` and can never be
+# updated ("Cannot update because cannot obtain old template references").
+# Root copier.yml + a templated `_subdirectory` is what keeps every language in
+# this one repo.
+#
+#   uvx copier copy --trust --data kind=python ~/.dotfiles my-project
+#   uvx copier update --trust          # later, from inside the project
+#
+# `mise run preset:python` / `preset:rust` wrap the first line.
+
+kind:
+  type: str
+  help: Which stack
+  default: python
+  choices: [python, rust]
+
+project_name:
+  type: str
+  help: Project name (also the package/crate name)
+  default: "{{ _copier_conf.dst_path.name }}"
+
+ci:
+  type: bool
+  help: GitHub Actions workflow running `mise run check`
+  default: false
+
+hooks:
+  type: bool
+  help: hk git hooks (hk.pkl) — also runnable as `hk check` / `hk fix`
+  default: false
+
+_subdirectory: ".config/copier/{{ kind }}"
+
+# This is what --trust is for: uv and cargo own the manifest and lockfile, so
+# the template never writes those and calls the real tools instead.
+#
+# These run on `update` as well as `copy` — copier does not distinguish — so
+# every one has to be idempotent. Without the guards, `copier update` on a
+# generated project dies with "Project is already initialized".
+_tasks:
+  - command: test -f pyproject.toml || (uv init --bare --name {{ project_name }} && uv add --quiet --dev pytest ruff)
+    when: "{{ kind == 'python' }}"
+  - command: test -f Cargo.toml || cargo init --name {{ project_name }}
+    when: "{{ kind == 'rust' }}"
+  - command: hk install
+    when: "{{ hooks }}"

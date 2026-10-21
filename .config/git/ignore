@@ -1,0 +1,65 @@
+**/.claude/settings.local.json
+.pi/
+.claude/
+.opencode/
+.agents/
+.omo/
+# Root only: agent memory (project-memory) lives in <repo>/context/. Unanchored,
+# this also swallowed every src/context/ in every repo.
+/context/
+skills-lock.json
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+# Finder's custom-folder-icon file is named Icon + CR. `Icon?` looked right but
+# matched `icons/` too, since macOS repos default to core.ignorecase. git drops
+# one trailing CR per line, hence two literal CRs below -- do not let an editor
+# strip them.
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Env files
+.envrc
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+
+# Editors / merge artifacts
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.orig
+*.rej
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+.tox/
+.nox/
+.hypothesis/
+.pyre/
+
+# Node / JS
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+
+# Rust
+target/

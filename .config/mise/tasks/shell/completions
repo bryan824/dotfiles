@@ -1,0 +1,69 @@
+#!/usr/bin/env zsh
+#MISE description="Regenerate zsh completions for installed CLIs into $ZDOTDIR/completions"
+#
+# See AGENTS.md, "completions are generated per machine". Run after tool
+# versions change; up.sh does.
+emulate -L zsh -o extended_glob
+set -uo pipefail
+
+dest=${ZDOTDIR:-${XDG_CONFIG_HOME:-$HOME/.config}/zsh}/completions
+mkdir -p $dest
+
+# output file -> command printing a #compdef script to stdout
+typeset -A generators=(
+  _bat       'bat --completion zsh'
+  _bun       'bun completions zsh'
+  _cargo     'rustup completions zsh cargo'
+  _cilium    'cilium completion zsh'
+  _fd        'fd --gen-completions zsh'
+  _gh        'gh completion -s zsh'
+  _helm      'helm completion zsh'
+  _herdr     'herdr completion zsh'
+  _k9s       'k9s completion zsh'
+  _kopia     'kopia --completion-script-zsh'
+  _kubectl   'kubectl completion zsh'
+  _kustomize 'kustomize completion zsh'
+  _lazygit   'lazygit completion zsh'
+  _mise      'mise completion zsh'
+  _opencode  'opencode completion zsh'
+  _rg        'rg --generate complete-zsh'
+  _ruff      'ruff generate-shell-completion zsh'
+  _rustup    'rustup completions zsh'
+  _starship  'starship completions zsh'
+  _supabase  'supabase completion zsh'
+  _talosctl  'talosctl completion zsh'
+  _uv        'uv generate-shell-completion zsh'
+  _watchexec 'watchexec --completions zsh'
+)
+
+integer written=0
+for target cmd in ${(kv)generators}; do
+  (( $+commands[${cmd%% *}] )) || continue
+  out=$(${=cmd} 2>/dev/null)
+  # Guards a tool that lacks the subcommand and printed help instead.
+  if [[ $out != '#compdef'* ]]; then
+    print -u2 "skipped $target: '$cmd' printed no completion script"
+    continue
+  fi
+  print -r -- $out >| $dest/$target && (( ++written ))
+done
+
+# Tools whose release archive ships a completion mise unpacks but never links.
+# Extensionless only — the _btm.ps1 siblings are PowerShell.
+for tool in bottom yazi zoxide; do
+  where=$(mise where $tool 2>/dev/null) || continue
+  for f in $where/**/_*(N.); do
+    # Match the basename: the path itself contains dots (…/0.14.9/…).
+    [[ ${f:t} == *.* ]] || { cp -f $f $dest/${f:t} && (( ++written )) }
+  done
+done
+
+# fzf ships key-bindings and completion in one stream and offers no way to ask
+# for half; the key-bindings half takes ^R. Sourced by 40_tools.zsh, since it is
+# an init script rather than a #compdef file.
+if (( $+commands[fzf] )); then
+  fzf --zsh | sed -n '/^### completion.zsh ###$/,/^### end: completion.zsh ###$/p' \
+    >| ${dest:h}/fzf-completion.zsh && (( ++written ))
+fi
+
+print -u2 "wrote $written completion file(s) to $dest"
