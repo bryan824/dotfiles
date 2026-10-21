@@ -30,7 +30,7 @@ its config misses:
 | `desktop` | terminals (kitty, ghostty, wezterm), window managers (aerospace, nehir), television, herdr, bun, node |
 | `dev` | kubectl, k9s, helm, kustomize, duckdb, hk, tokei |
 | `backup` | kopia, rclone, their exclude lists, the nightly LaunchAgent |
-| `bryan` | talosctl, cilium, supabase, gnupg, agent tooling, Syncthing service, weekly self-update |
+| `bryan` | talosctl, cilium, supabase, gnupg, agent tooling, Syncthing service |
 | `irene` | antigravity-cli, Syncthing service; no scheduled self-update |
 | `server` | no extra tools; dotfile history disabled |
 | `vyos` | vector and its config; router-only bootstrap |

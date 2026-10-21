@@ -69,9 +69,7 @@ package_manager = "bun"
 "~/.config/git/ignore" = { mode = "symlink" }
 "~/.config/starship.toml" = { mode = "symlink" }
 
-# Body of the `up` function, and of the dev.mise.self-update LaunchAgent that
-# bryan declares. Every machine on purpose: the agent is macOS-only,
-# but `up` is how a server updates itself by hand too.
+# Body of the manual `up` function, available on every machine.
 "~/.local/bin/up.sh" = { mode = "symlink" }
 
 # mise's own config, so this repo manages the file you are reading. One entry

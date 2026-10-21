@@ -36,20 +36,6 @@ ffmpeg = "latest"
 # command activates mise by absolute path before calling anything from it.
 # ---------------------------------------------------------------------------
 
-# Weekly self-update of everything not owned by a package manager already.
-# Same script the interactive `up` runs; see .local/bin/up.sh.
-#
-# Weekly, not nightly, and Sunday 04:00 on purpose. Unlike the kopia agent in
-# config.backup.toml this one *writes* to every toolchain on PATH, so a run
-# that lands mid-week rebuilds the tools under whatever is being worked on. A
-# failure here is also not urgent -- nothing is lost, the next run retries --
-# so it gets no notification, only the log below.
-[bootstrap.macos.launchd.agents.self-update]
-program = "~/.local/bin/up.sh"
-start_calendar_interval = { weekday = 0, hour = 4, minute = 0 }
-stdout_path = "~/Library/Logs/up-launchagent.out"
-stderr_path = "~/Library/Logs/up-launchagent.err"
-
 # Start at login and let launchd own restarts; mise owns binary upgrades.
 # Resolve the current tool from home, without relying on shell activation.
 [bootstrap.macos.launchd.agents.syncthing]

@@ -71,13 +71,10 @@ rmf() {
 diffd() { diff -qr "$1" "$2" | grep -v -e 'DS_STORE' -e 'Thumbs' | sort; }
 
 # ---------------------------------------------------------------------------
-# Periodic updates
+# Manual updates
 # ---------------------------------------------------------------------------
 
 # Run every self-update/upgrade in one shot:  up
 #
-# The steps live in the script, not here, because bryan's dev.mise.self-update
-# LaunchAgent runs the same thing weekly and two copies would drift. The script
-# sets up its own mise/zim/gcloud resolution, so it is safe to run from a bare
-# launchd environment as well as from here.
+# The script sets up its own mise/zim/gcloud resolution.
 up() { "$HOME/.local/bin/up.sh" }
