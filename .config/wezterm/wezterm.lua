@@ -241,16 +241,6 @@ local config = {
   },
 }
 
--- Start herdr instead of a bare shell, as kitty does via launch.conf. Guarded:
--- an unconditional default_prog pointing at a missing binary leaves wezterm
--- unable to open a window at all, which is how the old zellij path behaved.
-local herdr = shim "herdr"
-local f = io.open(herdr)
-if f then
-  f:close()
-  config.default_prog = { herdr }
-end
-
 -- for i = 1, 8 do
 --   -- CTRL+ALT + number to activate that tab
 --   table.insert(config.keys, {

@@ -1,1 +1,0 @@
-launch {{ get_env(name="HOME") }}/.local/share/mise/installs/herdr/latest/herdr

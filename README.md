@@ -27,7 +27,7 @@ its config misses:
 | Layer | Adds |
 |---|---|
 | base — `config.toml`, always | zsh, git, starship, nvim, bat, ripgrep, uv, core CLI |
-| `desktop` | terminals (kitty, ghostty, wezterm), window managers (aerospace, nehir), television, herdr, bun, node |
+| `desktop` | terminal (kitty), television, bun, node |
 | `dev` | kubectl, k9s, helm, kustomize, duckdb, hk, tokei |
 | `backup` | kopia, rclone, their exclude lists, the nightly LaunchAgent |
 | `bryan` | talosctl, cilium, supabase, gnupg, agent tooling, Syncthing service |
@@ -430,7 +430,8 @@ copier.yml                        # project template: questions + subdirectory
 .config/hk/common.pkl             # shared hook steps, imported live by projects
 .config/zsh/                      # numbered startup fragments + Zim
 .config/nvim/
-.config/kitty/  .config/ghostty/  .config/wezterm/
+.config/kitty/
+.config/ghostty/  .config/wezterm/  # backup only; not deployed
 .config/git/  .config/television/  .config/k9s/  ...
 ```
 
