@@ -2,7 +2,8 @@
 #: Loaded where miserc.toml lists "dev". Layers on top of config.toml.
 
 [tools]
-duckdb = "latest"
+# DuckDB 2 uses new archive names; bypass mise's older bundled Aqua recipe.
+"github:duckdb/duckdb" = { version = "latest", matching = "duckdb-cli-" }
 helm = "latest"
 k9s = "latest"
 kubectl = "latest"
