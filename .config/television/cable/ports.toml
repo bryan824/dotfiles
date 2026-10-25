@@ -1,0 +1,30 @@
+[metadata]
+name = "ports"
+description = "List listening TCP ports and associated processes on macOS"
+requirements = ["lsof", "awk"]
+
+[source]
+# Field output preserves full process names; deduplicate matching IPv4/IPv6 rows.
+command = '''lsof -nP -iTCP -sTCP:LISTEN -Fpcn | awk '
+/^p/ { pid = substr($0, 2) }
+/^c/ { process = substr($0, 2) }
+/^n/ {
+    address = substr($0, 2)
+    port = address
+    sub(/.*:/, "", port)
+    if (!seen[pid, address]++)
+        printf "%s\t%s\t%s\t%s\n", port, pid, process, address
+}' '''
+display = "{split:\t:0} ({split:\t:2}, PID {split:\t:1}) {split:\t:3}"
+output = "{split:\t:0}"
+
+[preview]
+command = "lsof -nP -a -p '{split:\t:1}' -iTCP:'{split:\t:0}' -sTCP:LISTEN"
+
+[ui.preview_panel]
+size = 40
+
+[actions.kill]
+description = "Force-kill the selected listening process (SIGKILL)"
+command = "kill -9 '{split:\t:1}'"
+mode = "execute"
