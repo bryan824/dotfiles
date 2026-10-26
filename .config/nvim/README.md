@@ -50,7 +50,9 @@ only the downstream layer:
 - `lua/user/mini.lua`: `mini.starter`, `mini.git`, `mini.keymap`, and
   `mini.pick` customizations extracted from the old `plugin/30_mini.lua`.
 - `lua/user/plugins.lua`: Lua formatting through StyLua, extracted from the old
-  `plugin/40_plugins.lua`.
+  `plugin/40_plugins.lua`, and the list of enabled language servers (ty, Ruff).
+- `after/lsp/<name>.lua`: editor-only overrides merged over nvim-lspconfig's
+  defaults. Lint and type rules belong in each project's `pyproject.toml`.
 - `plugin/90_user.lua`: the custom `<Leader>gb` mapping, local wiring, and edit
   mappings adapted to the layered layout.
 - `.stylua.toml`: the existing personal StyLua settings.
