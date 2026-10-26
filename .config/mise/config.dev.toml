@@ -10,6 +10,7 @@ kubectl = "latest"
 kustomize = "latest"
 hk = "latest"
 tokei = "latest"
+ty = "latest"
 
 [dotfiles]
 "~/.config/zed/settings.json" = { mode = "symlink" }
