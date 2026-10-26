@@ -40,6 +40,10 @@ machine that wants it — no per-entry `variants` lists.
 
 ## Bootstrap a new machine
 
+Install mise first. If you clone the repository, you also need working Git.
+On a Mac, Git is available through Apple's Command Line Tools; confirm that
+`git --version` succeeds before cloning.
+
 On a version-controlled workstation:
 
 ```sh
@@ -51,7 +55,8 @@ files without `.git`, rather than cloning or pulling. See the one-way mirror
 setup below. The `irene` layer disables mise history as well.
 
 **Write both machine-local files before applying anything.** Neither is
-committed; each machine sets its own.
+committed; each machine sets its own. If either file already exists, edit it
+instead of replacing it with the example below.
 
 ```sh
 mkdir -p ~/.config/mise
@@ -78,16 +83,37 @@ Everything in `[vars]` is opt-in: a template that references a var you have not
 set renders that section empty rather than failing, so a fresh machine works
 without setting any of the optional ones.
 
-Then link mise's own config into place once, to break the chicken-and-egg
-(mise must load the config that manages its config), and bootstrap:
+For the `bryan` role, restore the existing matching age private key to
+`~/.config/mise/age.txt` before running mise in the repository. Keep the key
+outside `~/.dotfiles` and restrict it with `chmod 600 ~/.config/mise/age.txt`.
+A newly generated, unrelated key cannot decrypt the stored `IPINFO_TOKEN`;
+without a matching identity, mise stops before deploying dotfiles. The other
+roles do not load this encrypted value.
+
+Mise can load `.config/mise/config.toml` directly from the repository. Review
+and trust the configuration, then preview and apply from that directory:
 
 ```sh
-ln -sf ~/.dotfiles/.config/mise/config.toml ~/.config/mise/config.toml
-mise bootstrap dotfiles diff     # always preview first
-mise bootstrap dotfiles apply -f
+mise -C ~/.dotfiles trust --all
+mise -C ~/.dotfiles dot diff
+mise -C ~/.dotfiles bootstrap --only dotfiles,tools --dry-run
+# Review both previews before running the next command.
+mise -C ~/.dotfiles bootstrap --only dotfiles,tools
+mise -C "$HOME" bootstrap status
 ```
 
-`-f` is needed on a machine that already has real files at those paths.
+Mise creates its own configuration links during apply; no manual `ln -sf` is
+needed. Keep obtaining the repository separate so you can inspect its contents
+before deployment: `bootstrap --from ... --dry-run` previews only the clone
+when the checkout does not exist yet.
+
+If a preview reports a conflict or unwanted changes, stop and resolve them
+before applying. Do not add blanket `--force-dotfiles`. Copy and template
+entries can overwrite local edits without force; read the
+[deployment warnings](#deploy-changes-on-an-existing-mac) first. Start services
+only after their separate setup is complete. LaunchAgent apply covers every
+agent declared by the selected layers, including backups; see
+[service activation](#syncthing-service-personal-macs).
 
 ### Moving an existing machine to layers
 
@@ -136,15 +162,47 @@ back to this repo.
 
 ## Daily use
 
+### Deploy changes on an existing Mac
+
+Use this sequence after the machine's layers and local identity are configured
+and the updated repository files are present. Source synchronization stays
+separate: these commands do not pull Git changes or update Irene's mirror.
+Run from your home directory so a project's config does not add deployment
+entries or tools.
+
 ```sh
-mise bootstrap dotfiles status    # what is managed, and its state
-mise bootstrap dotfiles diff      # preview pending changes
-mise bootstrap dotfiles apply     # apply
-mise bootstrap dotfiles add --changed   # pull copy-mode edits back into the repo
+cd "$HOME"
+mise dot diff
+mise bootstrap --only dotfiles,tools --dry-run
+# Review both previews before running the next command.
+mise bootstrap --only dotfiles,tools
+mise bootstrap status
 ```
 
+`mise dot` is an alias for `mise bootstrap dotfiles`, used elsewhere below.
+`diff` renders templates so you can inspect their output. `--dry-run` previews
+actions but skips dotfile template rendering. Stop if either preview fails
+or shows changes you do not want.
+
+**Copy and template entries overwrite local content even without `--force`.**
+Preserve any local edits you want before applying. For intentional copy-mode
+edits on the version-controlled source workstation, review them and capture
+only those targets with `mise dot add <target>`. Do not capture edits from
+Irene's mirror back into the source. See [Copy-mode files](#copy-mode-files).
+
+Existing regular files that block symlink entries are conflicts. Resolve them
+before continuing; do not add `--force-dotfiles` to routine deployment.
+
+The selected phases apply dotfiles and install required tools, without the
+explicit upgrade behavior of `--upgrade`. They do not start LaunchAgents.
+Keep [new-machine setup](#bootstrap-a-new-machine) and
+[service activation](#syncthing-service-personal-macs) separate. Full
+`mise bootstrap` applies LaunchAgents before installing tools, so do not use
+it as a replacement for this sequence.
+
 Most files are symlinked, so editing the live path edits this repo directly —
-no capture step. The exceptions are listed below.
+no capture step. The exceptions are listed below. Use `mise dot status` when
+you want to inspect only dotfiles rather than every bootstrap part.
 
 ### Add an existing file
 
